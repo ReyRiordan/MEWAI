@@ -10,7 +10,7 @@ load_dotenv('.venv/.env')
 DB_URI = os.getenv("DB_URI")
 
 
-def export_to_excel(output_file: str):
+def export_to_excel_old(output_file: str):
     client = MongoClient(DB_URI)
     source1 = client['Benchmark']['AI_Eval.M2_test']
     source2 = client['Benchmark']['Human_Eval.M2_test']
@@ -87,6 +87,66 @@ def export_to_excel(output_file: str):
 
     client.close()
 
+def export_to_excel(output_file: str):
+    client = MongoClient(DB_URI)
+    source1 = client['Benchmark']['AI_Eval.M2_test']
+    source2 = client['Benchmark']['Human_Eval.M2_test']
+    query = {"username": 1,
+             "sim_info": 1,
+             "time_spent": 1,
+             "evaluation": 1}
+    docs1 = list(source1.find({}, query))
+    docs2 = list(source2.find({}, query))
+    docs = docs2 + docs1 # human first ig
+    
+    combined_list = []
+
+    for doc in docs:
+        if doc['username'] == "admin": continue
+
+        current_dict = {"eval_id": doc['_id'], 
+                        "username": doc['username'], 
+                        "sim_id": doc['sim_info']['_id'], 
+                        "netid": doc['sim_info']['netid'], 
+                        "patient": doc['sim_info']['patient'], 
+                        "time_spent": doc['time_spent']}
+        
+        eval = doc['evaluation']
+
+        def extract_grades(eval_part: dict, prefix: str) -> dict:
+            grades_dict = {}
+            for key, value in eval_part['features'].items():
+                grades_dict[prefix + key] = 1 if value else 0
+            grades_dict[prefix + 'score'] = eval_part['score']
+            grades_dict[prefix + 'comment'] = eval_part['comment']
+            return grades_dict
+        
+        summary_grades = extract_grades(eval['Summary Statement']['Summary Statement'], "sum_")
+        current_dict.update(summary_grades)
+
+        diff_grades = extract_grades(eval['Assessment']['Differential Diagnosis'], "diff_")
+        current_dict.update(diff_grades)
+
+        exlead_grades = extract_grades(eval['Assessment']['Explanation of Lead Diagnosis'], "exlead_")
+        current_dict.update(exlead_grades)
+
+        exalt_grades = extract_grades(eval['Assessment']['Explanation of Alternative Diagnoses'], "exalt_")
+        current_dict.update(exalt_grades)
+
+        plan_grades = extract_grades(eval['Plan']['Plan'], "plan_")
+        current_dict.update(plan_grades)
+
+        combined_list.append(current_dict)
+
+    combined_list.sort(key=lambda x: (x.get('sim_id', ''), x.get('username', '')))
+
+    df = pd.DataFrame(combined_list)
+
+    with pd.ExcelWriter(output_file, engine='openpyxl') as writer:
+        df.to_excel(writer, sheet_name='ALL', index=False)
+
+    client.close()
+
 
 if __name__ == "__main__":
-    export_to_excel("IDEA/benchmark/eval_data_25-9-5.xlsx")
+    export_to_excel("IDEA/benchmark/eval_data_25-9-6.xlsx")
