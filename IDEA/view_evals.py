@@ -43,7 +43,8 @@ COLLECTION_EVALS_HUMAN = DB_CLIENT['Benchmark']['Human_Eval.M2_test']
 COLLECTION_EVALS_AI = DB_CLIENT['Benchmark']['AI_Eval.M2_test']
 
 EVALUATORS_HUMAN = ['Fac1', 'Fac2', 'Fac3']
-EVALUATORS_AI = ['Claude 4S', 'GPT 5', 'Gemini 2.5P']
+# EVALUATORS_AI = ['Claude 4S', 'GPT 5', 'Gemini 2.5P']
+EVALUATORS_AI = ['Claude 4S']
 
 # OTHER
 def load_and_setup():
