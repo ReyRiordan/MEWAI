@@ -100,7 +100,7 @@ def display_evaluation(interview: dict, evaluation: dict) -> dict:
     return evaluation
 
 
-# ---------- VIEW_EVAL DISPLAYS -----------
+# ---------- VIEW_EVALS DISPLAYS -----------
 
 def display_comparison_part(evaluations: dict, section: str, part: str) -> None:
     rubric = RUBRIC[section][part]
@@ -108,6 +108,7 @@ def display_comparison_part(evaluations: dict, section: str, part: str) -> None:
     for letter in rubric['features']:
         df[letter] = []
     df['comment'] = []
+    df['time'] = []
 
     for evaler in list(evaluations.keys()):
         df['evaler'].append(evaler)
@@ -124,6 +125,7 @@ def display_comparison_part(evaluations: dict, section: str, part: str) -> None:
                     df[key].append(value)
                 else:
                     df[key].append(value)
+            df['time'].append(evaluations[evaler]['time_spent'])
         else:
             for key in df: 
                 if key != 'evaler': df[key].append(None)
@@ -131,7 +133,8 @@ def display_comparison_part(evaluations: dict, section: str, part: str) -> None:
     config = {
         'evaler': st.column_config.Column("Evaluator", width="small", pinned=True),
         'score': st.column_config.Column(f"Score / {next(iter(rubric['points']))}", width="small"),
-        'comment': st.column_config.Column(f"Comment", width="large")
+        'comment': st.column_config.Column(f"Comment", width="medium"), 
+        'time': st.column_config.Column(f"Time", width="small")
     }
     df = pd.DataFrame(df)
     st.dataframe(df, column_config=config, hide_index=True, use_container_width=True)
