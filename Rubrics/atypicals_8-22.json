@@ -39,7 +39,7 @@
             "features": {
                 "A": "Leading diagnosis is explicitly linked to supporting data points",
                 "B": "Mentions specific risk factors for cardiac or GI diseases (diabetes/DM, hypertension/HTN, smoking, cardiac risk factors, overweight/obesity, age, no NSAID use, no steroid use) OR explicitly states “cardiac risk factors” (just saying “based on risk factors” does not count)",
-                "C": "Mentions key features from history in support of cardiac or GI disease: \n\ta. Quality of pain: pressure/burning, not pleuritic, not muscular, intermittent, recurring, recurrent, episodic, atypical, exertional, chronic \n\tb. Precipitating/alleviating factors: worse with food/post prandial, worse when lying down, worse with exertion/walking, occurs at rest, \n\tc. Associated symptoms/history: lack of response to PPI/pantoprazole, incomplete response to TUMS/antacids, no blood in stool, no melena, no NSAID use, no steroid use"
+                "C": "Mentions any key features from history in support of cardiac or GI disease: \n\ta. Quality of pain: pressure/burning, not pleuritic, not muscular, intermittent, recurring, recurrent, episodic, atypical, exertional, chronic \n\tb. Precipitating/alleviating factors: worse with food/post prandial, worse when lying down, worse with exertion/walking, occurs at rest, \n\tc. Associated symptoms/history: lack of response to PPI/pantoprazole, incomplete response to TUMS/antacids, no blood in stool, no melena, no NSAID use, no steroid use"
             },
             "points": {
                 "2": "A, B, AND C are all present",
@@ -51,7 +51,7 @@
             "features": {
                 "A": "Alternative diagnosis is explicitly linked to supporting data points",
                 "B": "Mentions specific risk factors for cardiac or GI diseases (diabetes/DM, hypertension/HTN, smoking, cardiac risk factors, overweight/obesity, age, no NSAID use, no steroid use) OR explicitly states “cardiac risk factors” (just saying “based on risk factors” does not count)",
-                "C": "Mentions key features from history in support of cardiac or GI disease: \n\ta. Quality of pain: pressure/burning, not pleuritic, not muscular, intermittent, recurring, recurrent, episodic, atypical, exertional, chronic \n\tb. Precipitating/alleviating factors: worse with food/post prandial, worse when lying down, worse with exertion/walking, occurs at rest, \n\tc. Associated symptoms/history: lack of response to PPI/pantoprazole, incomplete response to TUMS/antacids, no blood in stool, no melena, no NSAID use, no steroid use"
+                "C": "Mentions any key features from history in support of cardiac or GI disease: \n\ta. Quality of pain: pressure/burning, not pleuritic, not muscular, intermittent, recurring, recurrent, episodic, atypical, exertional, chronic \n\tb. Precipitating/alleviating factors: worse with food/post prandial, worse when lying down, worse with exertion/walking, occurs at rest, \n\tc. Associated symptoms/history: lack of response to PPI/pantoprazole, incomplete response to TUMS/antacids, no blood in stool, no melena, no NSAID use, no steroid use"
             },
             "points": {
                 "2": "A, B, AND C are all present",
