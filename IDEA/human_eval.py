@@ -131,7 +131,10 @@ if st.session_state['stage'] == "DATASET_SELECTION":
         else:
             st.write("ERROR: INVALID SELECTION")
             return
-        set_stage("HUMAN_EVAL")
+        if st.session_state["username"] == "Group":
+            set_stage("GROUP_EVAL")
+        else:
+            set_stage("HUMAN_EVAL")
 
     layout1 = st.columns([2, 3, 2])
     with layout1[1]:
@@ -256,3 +259,7 @@ if st.session_state["stage"] == "HUMAN_EVAL":
         if layout12[2].button(emoji.emojize("Done :white_check_mark:"), use_container_width=True, key="donetop"):
             mark_evaluation(":white_check_mark:")
             st.rerun()
+
+
+if st.session_state["stage"] == "GROUP_EVAL":
+    
