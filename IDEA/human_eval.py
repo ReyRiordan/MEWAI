@@ -49,6 +49,11 @@ SIMS_REM = DB_CLIENT['Benchmark']['Interviews.M2_rem']
 EVALS_TEST = DB_CLIENT["Benchmark"]["Human_Eval.M2_test"]
 EVALS_REM = DB_CLIENT['Benchmark']['Human_Eval.M2_rem']
 
+EVALUATORS_HUMAN = ['Fac1', 'Fac2', 'Fac3']
+# EVALUATORS_AI = ['Claude 4S', 'GPT 5', 'Gemini 2.5P']
+EVALUATORS_AI = ['Claude 4S']
+EVALS_TEST_AI = DB_CLIENT["Benchmark"]["AI_Eval.M2_test"]
+
 
 def update_evaluation(checkpoint: str, evaluation: dict):
     """Update or insert an evaluation document in the database."""
@@ -89,6 +94,20 @@ def load_and_setup():
     if not st.session_state['started_time']:
         update_evaluation("start", evaluation)
         st.session_state['started_time'] = True
+
+    if st.session_state['username'] == "Group":
+        # Load evals
+        evaluations = {}
+        for evaler in EVALUATORS_HUMAN + EVALUATORS_AI:
+            evaluations[evaler] = None
+        eval_list_human = list(st.session_state['db_evals'].find({'sim_info._id': sim_id}))
+        eval_list_ai = list(EVALS_TEST_AI.find({'sim_info._id': sim_id}))
+        eval_list = eval_list_human + eval_list_ai
+        for eval in eval_list:
+            if eval['username'] in evaluations:
+                evaluations[eval['username']] = eval
+        
+        return sim, evaluation, evaluations
 
     return sim, evaluation
 
@@ -131,6 +150,7 @@ if st.session_state['stage'] == "DATASET_SELECTION":
         else:
             st.write("ERROR: INVALID SELECTION")
             return
+        
         if st.session_state["username"] == "Group":
             set_stage("GROUP_EVAL")
         else:
