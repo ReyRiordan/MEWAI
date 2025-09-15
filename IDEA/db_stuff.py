@@ -337,8 +337,8 @@ def fix_times():
 
 def transfer_data():
     client = MongoClient(DB_URI)
-    source = client['Benchmark']['AI_Eval.M2_test']
-    target = client['Benchmark']['AI_Eval.M2_test_v1']
+    source = client['Benchmark']['Human_Eval.M2_test']
+    target = client['Benchmark']['Human_Eval.M2_test_copy']
     docs = list(source.find())
     
     target.insert_many(docs)
