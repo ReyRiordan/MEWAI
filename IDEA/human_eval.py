@@ -380,7 +380,7 @@ if st.session_state["stage"] == "GROUP_EVAL":
         sim, evaluation, evaluations = load_and_setup_group()
         st.session_state["current_evaluation"] = evaluation
 
-        evaluation["evaluation"] = display_evaluation(sim, evaluation["evaluation"])
+        evaluation["evaluation"] = display_evaluation_group(sim, evaluation["evaluation"], evaluations)
         st.session_state["current_evaluation"] = evaluation
 
     def navigate(direction):
