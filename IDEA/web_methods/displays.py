@@ -174,6 +174,7 @@ def display_comparison(interview: dict, evaluations: list[dict]) -> None:
 
 def display_part_group(evaluations: dict, eval: dict, section: str, part: str, sim_id: str) -> None:
     values = eval[section][part]
+    print(values)
     rubric = RUBRIC[section][part]
     prefix = f"{sim_id}_{part}" # Use sim_id to make keys unique across simulations
 
@@ -213,23 +214,27 @@ def display_part_group(evaluations: dict, eval: dict, section: str, part: str, s
     st.dataframe(df, column_config=config, hide_index=True, use_container_width=True)
 
     # ---------- ACTUAL GROUP GRADING -----------
-    score_placeholder = st.empty()
-    
     features = values['features']
     for i, (key, value) in enumerate(features.items()):
+        layout = st.columns([1, 5])
         label = f"**{key}**: {rubric['features'][key]}"
-        features[key] = st.selectbox(label,
-                                     options = ["TRUE", "FALSE", "EITHER"],
-                                     key = f"{prefix}_feature_{key}"+str(i),
-                                     placeholder = value)
+        options = ["TRUE", "FALSE", "EITHER"]
+        index = options.index(value) if value else None
+        features[key] = layout[0].selectbox(label,
+                                            options = options,
+                                            index = index, 
+                                            key = f"{prefix}_feature_{key}"+str(i),
+                                            placeholder = "Select...",
+                                            label_visibility="collapsed")
+        layout[1].write(label)
+        
+    # values["score"] = st.text_input("**Score** (optional, can be list of valid scores?)", 
+    #                                 key = f"{prefix}_score", 
+    #                                 value = values["score"])
     
     values["comment"] = st.text_area("**Comments** (optional)", 
                                     key = f"{prefix}_comment", 
                                     value = values["comment"])
-    
-    values["score"] = st.text_area("**Score** (also optional, can be list of valid scores?)", 
-                                    key = f"{prefix}_score", 
-                                    value = values["score"])
 
 def display_evaluation_group(interview: dict, evaluation: dict, evaluations: dict) -> dict:
     sim_id = str(interview["_id"])  # Get unique sim ID
@@ -249,9 +254,9 @@ def display_evaluation_group(interview: dict, evaluation: dict, evaluations: dic
                     tabs = st.tabs(parts)
                     for i, part in enumerate(parts):
                         with tabs[i]:
-                            display_part(evaluations, evaluation, section, part, sim_id)
+                            display_part_group(evaluations, evaluation, section, part, sim_id)
                 else:
-                    display_part(evaluations, evaluation, section, section, sim_id)
+                    display_part_group(evaluations, evaluation, section, section, sim_id)
         
     return evaluation
 

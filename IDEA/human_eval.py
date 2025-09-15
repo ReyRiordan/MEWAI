@@ -125,7 +125,8 @@ def load_and_setup_group():
                     for human_evaler, human_eval in evaluations.items():
                         human_grades.append(human_eval['evaluation'][section][part]['features'][letter])
                     # if there is full agreement, autofill
-                    if len(set(human_grades)) == 1:
+                    print(human_grades)
+                    if human_grades[0] == human_grades[1] == human_grades[2]:
                         eval[section][part]['features'][letter] = "TRUE" if human_grades[0] else "FALSE"
                     else:
                         eval[section][part]['features'][letter] = None
