@@ -14,5 +14,9 @@
     "Fac3": {
         "netid": null,
         "password": "Fac3"
+    },
+    "Group": {
+        "netid": null,
+        "password": "CONSENSUS"
     }
 }
