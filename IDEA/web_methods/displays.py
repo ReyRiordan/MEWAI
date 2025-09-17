@@ -17,6 +17,7 @@ from typing import List
 from lookups import *
 import string
 import pandas as pd
+import copy
 
 
 # --------- HUMAN_EVAL DISPLAYS -----------
@@ -110,7 +111,15 @@ def display_comparison_part(evaluations: dict, section: str, part: str) -> None:
     df['comment'] = []
     # df['time'] = []
 
+    group_evaluation = evaluations['Group']
+    # df_group = {'evaler': ["Group"]}
+    df_group = {}
+    for letter in rubric['features']:
+        df_group[letter] = []
+    df_group['comment'] = []
+
     for evaler in list(evaluations.keys()):
+        if evaler == "Group": continue
         df['evaler'].append(evaler)
         if evaluations[evaler]:
             inputs = evaluations[evaler]['evaluation'][section][part]
@@ -138,6 +147,22 @@ def display_comparison_part(evaluations: dict, section: str, part: str) -> None:
     }
     df = pd.DataFrame(df)
     st.dataframe(df, column_config=config, hide_index=True, use_container_width=True)
+
+    group_inputs = group_evaluation['evaluation'][section][part]
+    for key, value in group_inputs.items():
+        if key not in ['comment', 'features']: continue
+        elif key == 'features':
+            for k, v in group_inputs['features'].items(): 
+                df_group[k].append(v)
+        else:
+            df_group[key].append(value)
+    print(f"df_group:\n {df_group}")
+    config_group = {
+        # 'evaler': st.column_config.Column("", width="medium", pinned=True),
+        'comment': st.column_config.Column(f"Comment", width="large"), 
+    }
+    df_group = pd.DataFrame(df_group)
+    st.dataframe(df_group, column_config=config_group, hide_index=True, use_container_width=True)
 
     with st.container(border=True):
         st.html(rubric["html"])
