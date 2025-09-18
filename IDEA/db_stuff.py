@@ -348,7 +348,6 @@ def transfer_data():
     #     doc['evaluation'] = doc.pop("feedback")
     #     source.replace_one({"_id": doc['_id']}, doc)
 
-
 def edit_data():
     client = MongoClient(DB_URI)
     source = client['Benchmark']['Interviews.M2_test']
@@ -362,5 +361,24 @@ def edit_data():
         }}
     )
 
+
+def export_group_evals():
+    client = MongoClient(DB_URI)
+    source = client['Benchmark']['Group_Eval.M2_test']
+    docs = list(source.find())
+
+    to_export = []
+    for doc in docs:
+        eval = {
+            'sim_info': doc['sim_info'],
+            'evaluation': doc['evaluation']
+        }
+        eval['sim_info'].pop('_id')
+        to_export.append(eval)
+
+    with open("./IDEA/benchmark/group_evals.json", 'w') as export_file:
+        json.dump(to_export, export_file, indent=2)
+
+
 if __name__ == "__main__":
-    transfer_data()
+    export_group_evals()
