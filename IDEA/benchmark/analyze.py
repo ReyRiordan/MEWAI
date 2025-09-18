@@ -23,9 +23,7 @@ def elapsed_minutes(iso1: str, iso2: str) -> int:
     delta = abs(t2 - t1)
     return delta.total_seconds() / 60
 
-def compute_time_spent():
-    client = MongoClient(DB_URI)
-    source = client['Benchmark']['AI_Eval.M2_test']
+def compute_time_spent(source):
     docs = list(source.find())
 
     for doc in docs:
@@ -47,4 +45,6 @@ def compute_time_spent():
 
 
 if __name__ == "__main__":
-    compute_time_spent()
+    client = MongoClient(DB_URI)
+    source = client['Benchmark']['Group_Eval.M2_test']
+    compute_time_spent(source)
