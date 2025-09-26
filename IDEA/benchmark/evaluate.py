@@ -27,7 +27,7 @@ def evaluate_all(provider: str, model_name: str, username: str):
         "name": model_name,
         "temperature": 0.0,
         "thinking": True,
-        "prompt_id": "Feedback_8-16",
+        "prompt_id": "Feedback_8-22",
         "usage": {
             "input_tokens": 0,
             "output_tokens": 0
@@ -40,7 +40,7 @@ def evaluate_all(provider: str, model_name: str, username: str):
     n = 0
     for header in sim_headers:
         sim = source.find_one({"_id": header['_id']})
-        start_time = datetime.now().isoformat()
+        start_time = datetime.now()
 
         sim_info = {
             "_id": sim['_id'],
@@ -73,11 +73,9 @@ def evaluate_all(provider: str, model_name: str, username: str):
                 model_info['usage']['output_tokens'] += part_usage['output_tokens']
                 evaluation[section][part] = part_eval
 
-        end_time = datetime.now().isoformat()
-        times = {
-            start_time: "start",
-            end_time: "end"
-        }
+        end_time = datetime.now()
+        delta = abs(start_time - end_time)
+        time_spent = delta.total_seconds() / 60
 
         final_result = {
             "username": username,
@@ -85,7 +83,7 @@ def evaluate_all(provider: str, model_name: str, username: str):
             "sim_info": sim_info,
             "rubric_id": RUBRIC_ID,
             "evaluation": evaluation,
-            "times": times,
+            "time_spent": time_spent,
         }
 
         target.insert_one(final_result)
@@ -108,7 +106,7 @@ def evaluate_rem(provider: str, model_name: str, username: str):
         "name": model_name,
         "temperature": 0.0,
         "thinking": True,
-        "prompt_id": "Feedback_8-16",
+        "prompt_id": "Feedback_8-22",
         "usage": {
             "input_tokens": 0,
             "output_tokens": 0
@@ -121,7 +119,7 @@ def evaluate_rem(provider: str, model_name: str, username: str):
     n = 0
     for header in sim_headers:
         sim = source.find_one({"_id": header['_id']})
-        start_time = datetime.now().isoformat()
+        start_time = datetime.now()
 
         sim_info = {
             "_id": sim['_id'],
@@ -154,11 +152,9 @@ def evaluate_rem(provider: str, model_name: str, username: str):
                 model_info['usage']['output_tokens'] += part_usage['output_tokens']
                 evaluation[section][part] = part_eval
 
-        end_time = datetime.now().isoformat()
-        times = {
-            start_time: "start",
-            end_time: "end"
-        }
+        end_time = datetime.now()
+        delta = abs(start_time - end_time)
+        time_spent = delta.total_seconds() / 60
 
         final_result = {
             "username": username,
@@ -166,7 +162,7 @@ def evaluate_rem(provider: str, model_name: str, username: str):
             "sim_info": sim_info,
             "rubric_id": RUBRIC_ID,
             "evaluation": evaluation,
-            "times": times,
+            "time_spent": time_spent,
         }
 
         target.insert_one(final_result)
@@ -183,7 +179,7 @@ def evaluate_single(provider: str, model_name: str, username: str, netid: str, p
         "name": model_name,
         "temperature": 0.0,
         "thinking": True,
-        "prompt_id": "Feedback_8-16",
+        "prompt_id": "Feedback_8-22",
         "usage": {
             "input_tokens": 0,
             "output_tokens": 0
@@ -248,7 +244,7 @@ def evaluate(type: str, provider: str, netid = None, patient = None):
             "username": "Claude 4S"
         },
         "openai": {
-            "name": "gpt-5-2025-08-07",
+            "name": "gpt-5",
             "username": "GPT 5"
         },
         "google": {
@@ -286,8 +282,8 @@ def evaluate(type: str, provider: str, netid = None, patient = None):
 
 if __name__ == "__main__":
     evaluate(
-        type = "rem",
+        type = "all",
         provider = "anthropic",
-        netid = "mi360",
-        patient = "Jeffrey Smith"
+        # netid = "mi360",
+        # patient = "Jeffrey Smith"
     )
