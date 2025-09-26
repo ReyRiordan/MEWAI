@@ -89,15 +89,15 @@ def export_to_excel_old(output_file: str):
 
 def export_to_excel(output_file: str):
     client = MongoClient(DB_URI)
-    source1 = client['Benchmark']['AI_Eval.M2_test']
+    # source1 = client['Benchmark']['AI_Eval.M2_test']
     source2 = client['Benchmark']['Human_Eval.M2_test']
     query = {"username": 1,
              "sim_info": 1,
              "time_spent": 1,
              "evaluation": 1}
-    docs1 = list(source1.find({}, query))
-    docs2 = list(source2.find({}, query))
-    docs = docs2 + docs1 # human first ig
+    # docs1 = list(source1.find({}, query))
+    docs = list(source2.find({}, query))
+    # docs = docs2 + docs1 # human first ig
     
     combined_list = []
 
@@ -149,4 +149,4 @@ def export_to_excel(output_file: str):
 
 
 if __name__ == "__main__":
-    export_to_excel("IDEA/benchmark/eval_data_25-9-6.xlsx")
+    export_to_excel("IDEA/benchmark/data/eval_data_25-9-25.xlsx")
