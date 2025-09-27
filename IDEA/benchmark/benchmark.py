@@ -17,11 +17,18 @@ ALL_EVALS = AI_EVALS + HUMAN_EVALS
 results = {}
 for eval in ALL_EVALS:
     if eval['username'] not in results:
-        results[eval['username']] = {
-            'n_correct': 0,
-            'n_total': 0,
-            'incorrect': []
+        temp = {
+            'all': {'correct': 0, 'total': 0},
+            # 'incorrect': []
         }
+        for part in ["Summary Statement", 
+                     "Differential Diagnosis", 
+                     "Explanation of Lead Diagnosis", 
+                     "Explanation of Alternative Diagnoses", 
+                     "Plan"]:
+            temp[part] = {'correct': 0, 'total': 0}
+        results[eval['username']] = temp
+
     result = results[eval['username']]
     
     group_eval = group_eval_source.find_one({
@@ -33,15 +40,22 @@ for eval in ALL_EVALS:
         for part in eval['evaluation'][section]:
             correct_features = group_eval['evaluation'][section][part]['features']
             for feature, grade in eval['evaluation'][section][part]['features'].items():
-                result['n_total'] += 1
+                result[part]['total'] += 1
+                result['all']['total'] += 1
                 if correct_features[feature] not in ["TRUE", "FALSE", "EITHER"]:
                     print(f"ERROR @ netid {eval['sim_info']['netid']}, patient {eval['sim_info']['patient']}: {correct_features[feature]} is unexpected correct value.")
                 elif correct_features[feature] == "TRUE" and grade == True:
-                    result['n_correct'] += 1
+                    result[part]['correct'] += 1
+                    result['all']['correct'] += 1
                 elif correct_features[feature] == "FALSE" and grade == False:
-                    result['n_correct'] += 1
+                    result[part]['correct'] += 1
+                    result['all']['correct'] += 1
                 elif correct_features[feature] == "EITHER":
-                    result['n_correct'] += 1
+                    result[part]['correct'] += 1
+                    result['all']['correct'] += 1
 
-for username, result in results.items():
-    print(f"{username}: {result['n_correct']}/{result['n_total']} -> {result['n_correct']/result['n_total']}")
+for username in results:
+    print(f"{username}:")
+    for part, result in results[username].items():
+        print(f"{part}: {result['correct']}/{result['total']} -> {result['correct']/result['total']}")
+    print("\n")
