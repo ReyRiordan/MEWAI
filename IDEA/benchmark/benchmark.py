@@ -27,6 +27,10 @@ for eval in ALL_EVALS:
                      "Explanation of Alternative Diagnoses", 
                      "Plan"]:
             temp[part] = {'correct': 0, 'total': 0}
+            if part == "Plan":
+                temp[part]['features'] = {}
+                for feature in ['A', 'B', 'C', 'D', 'E']:
+                    temp[part]['features'][feature] = {'correct': 0, 'total': 0}
         results[eval['username']] = temp
 
     result = results[eval['username']]
@@ -42,20 +46,33 @@ for eval in ALL_EVALS:
             for feature, grade in eval['evaluation'][section][part]['features'].items():
                 result[part]['total'] += 1
                 result['all']['total'] += 1
+                if part == "Plan":
+                    result[part]['features'][feature]['total'] += 1
                 if correct_features[feature] not in ["TRUE", "FALSE", "EITHER"]:
                     print(f"ERROR @ netid {eval['sim_info']['netid']}, patient {eval['sim_info']['patient']}: {correct_features[feature]} is unexpected correct value.")
                 elif correct_features[feature] == "TRUE" and grade == True:
                     result[part]['correct'] += 1
                     result['all']['correct'] += 1
+                    if part == "Plan":
+                        result[part]['features'][feature]['correct'] += 1
                 elif correct_features[feature] == "FALSE" and grade == False:
                     result[part]['correct'] += 1
                     result['all']['correct'] += 1
+                    if part == "Plan":
+                        result[part]['features'][feature]['correct'] += 1
                 elif correct_features[feature] == "EITHER":
                     result[part]['correct'] += 1
                     result['all']['correct'] += 1
+                    if part == "Plan":
+                        result[part]['features'][feature]['correct'] += 1
+                
 
 for username in results:
     print(f"{username}:")
     for part, result in results[username].items():
         print(f"{part}: {result['correct']}/{result['total']} -> {result['correct']/result['total']}")
+        if part == "Plan":
+            for feature in result['features']:
+                specific_result = result['features'][feature]
+                print(f"Plan_{feature}: {specific_result['correct']}/{specific_result['total']} -> {specific_result['correct']/specific_result['total']}")
     print("\n")
