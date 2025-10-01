@@ -7,12 +7,86 @@ from openai import OpenAI
 import tempfile
 from pymongo.mongo_client import MongoClient
 from pymongo.server_api import ServerApi
-
+import re
+import requests
 import sys
 import os
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from lookups import *
-from generate import *
+
+def create_prompt(prompt: str, rubric: dict) -> str:
+    prompt = prompt.replace("<title></title>", f"<title>{rubric['title']}</title>")
+    prompt = prompt.replace("<desc></desc>", f"<desc>{rubric['desc']}</desc>")
+    exclude = ['title', 'desc', 'html', 'extra_context']
+    to_insert = {k: v for k, v in rubric.items() if k not in exclude}
+    prompt = prompt.replace("<rubric></rubric>", f"<rubric>{to_insert}</rubric>")
+
+    return prompt
+
+
+def extract_from_output(output: str) -> dict:
+
+    def extract(tag: str):
+        match = re.search(rf'<{tag}>([\s\S]*?)</{tag}>', output)
+        if match:
+            return match.group(1).strip()
+        else:
+            print(f"ERROR: no match for <{tag}> in output")
+            return None
+
+    rationale = extract("rationale")
+    raw_grades = extract("grades")
+    if raw_grades:
+        try:
+            grade_dict = json.loads(raw_grades)
+            features = grade_dict['features']
+            score = grade_dict['score']
+        except json.JSONDecodeError as e:
+            print(f"ERROR: Could not parse grade JSON '{raw_grades}': {e}")
+            grade_dict = features = score = None
+    else:
+        grade_dict = features = score = None
+    feedback = extract("feedback")
+
+    return {
+        'comment': rationale,
+        'features': features,
+        'score': score,
+        'feedback': feedback
+    }
+
+# https://openrouter.ai/docs/api-reference/chat-completion
+def generate(model_info: dict, base_prompt: str, rubric: dict, user_prompt: str) -> dict:
+    system_prompt = create_prompt(base_prompt, rubric)
+    url = "https://openrouter.ai/api/v1/chat/completions"
+    payload = {
+        "model": model_info['id'],
+        "messages": [
+            {
+                "role": "system",
+                "content": system_prompt
+            },
+            {
+                "role": "user",
+                "content": user_prompt
+            }
+        ]
+    }
+    headers = {
+        "Authorization": f"Bearer {os.getenv("OPENROUTER_API_KEY")}",
+        "Content-Type": "application/json"
+    }
+    raw = requests.post(url, json=payload, headers=headers)
+
+    output = raw.choices[0].message.content
+    eval = extract_from_output(output) # reasoning, grade, feedback
+    usage = {
+        'input_tokens': raw.usage.prompt_tokens,
+        'output_tokens': raw.usage.completion_tokens
+    }
+    eval['usage'] = usage
+
+    return eval
 
 
 def evaluate(model_id: str, which: str, netid = None, patient = None) -> None:
