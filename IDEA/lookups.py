@@ -22,7 +22,7 @@ load_dotenv('.venv/.env')
 #         "CLIENT": }
 
 # SECRETS
-LOGIN_PASS = os.getenv("LOGIN_PASS")
+# LOGIN_PASS = os.getenv("LOGIN_PASS")
 DB_URI = os.getenv("DB_URI")
 # DATABASE_USERNAME=os.getenv("DB_USERNAME")
 # DATABASE_PASSWORD=os.getenv("DB_PASSWORD")
