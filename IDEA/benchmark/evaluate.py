@@ -104,17 +104,17 @@ def evaluate(model_id: str, which: str, netid = None, patient = None) -> None:
     if which == "single":
         sims = [source.find_one({"netid": netid, "patient": patient})] # FIND THE SINGLE
     elif which in ["all", "rem"]:
-        sims = list(source.find({}, {"netid": 1, "patient": 1}))
+        sims = list(source.find({}, {"netid": 1, "patient": 1, "post_note_inputs": 1}))
         if which == "rem":
-            sims = [header for header in sims if not target.find_one({"model_info.id": model_id,
-                                                                      "sim_info.netid": header['netid'],
-                                                                      "sim_info.patient": header['patient']})]
+            sims = [sim for sim in sims if not target.find_one({"model_info.id": model_id,
+                                                                "sim_info.netid": sim['netid'],
+                                                                "sim_info.patient": sim['patient']})]
     
     # MODEL SETTINGS
     model_info = {
         "id": model_id,
         "temperature": None,
-        "thinking": None,
+        "thinking": True,
         "prompt_id": "Evaluate_10-5-25",
         "usage": {
             "input_tokens": 0,
@@ -180,7 +180,7 @@ def evaluate(model_id: str, which: str, netid = None, patient = None) -> None:
 if __name__ == "__main__":
     evaluate(
         model_id = "anthropic/claude-sonnet-4.5",
-        which = "single",
-        netid = "mi360",
-        patient = "Jeffrey Smith"
+        which = "all",
+        # netid = "mi360",
+        # patient = "Jeffrey Smith"
     )
