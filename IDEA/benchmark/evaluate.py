@@ -46,13 +46,13 @@ def extract_from_output(output: str) -> dict:
             grade_dict = features = score = None
     else:
         grade_dict = features = score = None
-    feedback = extract("feedback")
+    # feedback = extract("feedback")
 
     return {
         'comment': rationale,
         'features': features,
         'score': score,
-        'feedback': feedback
+        # 'feedback': feedback
     }
 
 # https://openrouter.ai/docs/api-reference/chat-completion
@@ -61,6 +61,9 @@ def generate(model_info: dict, base_prompt: str, rubric: dict, user_prompt: str)
     url = "https://openrouter.ai/api/v1/chat/completions"
     payload = {
         "model": model_info['id'],
+        "reasoning":{
+            "enabled": True
+        },
         "messages": [
             {
                 "role": "system",
@@ -73,16 +76,17 @@ def generate(model_info: dict, base_prompt: str, rubric: dict, user_prompt: str)
         ]
     }
     headers = {
-        "Authorization": f"Bearer {os.getenv("OPENROUTER_API_KEY")}",
+        "Authorization": f"Bearer {OPENROUTER_API_KEY}",
         "Content-Type": "application/json"
     }
     raw = requests.post(url, json=payload, headers=headers)
+    raw = raw.json()
 
-    output = raw.choices[0].message.content
+    output = raw['choices'][0]['message']['content']
     eval = extract_from_output(output) # reasoning, grade, feedback
     usage = {
-        'input_tokens': raw.usage.prompt_tokens,
-        'output_tokens': raw.usage.completion_tokens
+        'input_tokens': raw['usage']['prompt_tokens'],
+        'output_tokens': raw['usage']['completion_tokens']
     }
     eval['usage'] = usage
 
@@ -109,9 +113,9 @@ def evaluate(model_id: str, which: str, netid = None, patient = None) -> None:
     # MODEL SETTINGS
     model_info = {
         "id": model_id,
-        "temperature": 0.0,
-        "thinking": True,
-        "prompt_id": "Feedback_8-22",
+        "temperature": None,
+        "thinking": None,
+        "prompt_id": "Evaluate_10-5-25",
         "usage": {
             "input_tokens": 0,
             "output_tokens": 0
@@ -145,13 +149,17 @@ def evaluate(model_id: str, which: str, netid = None, patient = None) -> None:
             
             evaluation[section] = {}
             for part, rubric in RUBRIC[section].items():
+                user_prompt = f"<{section}>{student_response}</{section}>"
                 if "extra_context" in rubric:
+                    user_prompt = f"<{section}>{student_response}</{section}>"
                     extra = rubric['extra_context']
                     user_prompt += f"\n<{extra}>{post_note[extra]}</{extra}>"
-                else:
-                    user_prompt = f"<{section}>{student_response}</{section}>"
+                
+                if part == "Plan":
+                    print(create_prompt(base_prompt, rubric))
+                    print(user_prompt)
 
-                part_eval = generate_eval(model_info, base_prompt, rubric, user_prompt)
+                part_eval = generate(model_info, base_prompt, rubric, user_prompt)
                 part_usage = part_eval.pop('usage')
                 model_info['usage']['input_tokens'] += part_usage['input_tokens']
                 model_info['usage']['output_tokens'] += part_usage['output_tokens']
@@ -440,8 +448,8 @@ def evaluate_old(type: str, provider: str, netid = None, patient = None):
 
 if __name__ == "__main__":
     evaluate(
-        model_id = "x-ai/grok-4-fast:free",
-        which = "all"
-        # netid = "mi360",
-        # patient = "Jeffrey Smith"
+        model_id = "anthropic/claude-sonnet-4.5",
+        which = "single",
+        netid = "mi360",
+        patient = "Jeffrey Smith"
     )
