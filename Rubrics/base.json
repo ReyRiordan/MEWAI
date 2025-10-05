@@ -31,28 +31,28 @@
     },
     "Summary Statement": {
         "Summary Statement": {
-            "title": "Interpretive summary",
+            "title": "Summary Statement",
             "desc": "Provides a concise summary statement that uses semantic vocabulary to highlight the most important elements from history, exam, and testing to interpret and represent the patient's main problem(s). The presence or absence of the following features is assessed: key risk factors, chief complaint, illness time course, and use of semantic qualifiers (e.g., monoarticular vs polyarticular) or unified medical concepts (e.g., volume overload, cardiovascular risk factors)."
             
         }
     },
     "Assessment": {
         "Differential Diagnosis": {
-            "title": "Differential diagnosis",
+            "title": "Differential Diagnosis",
             "desc": "Offers more than one relevant diagnostic possibility, committing to what is most likely and considering what is less likely or unlikely yet important to consider for the main chief complaint. If the chief complaint is a diagnosis or syndrome (e.g., acute on chronic systolic heart failure) then differential to rate may be around the differential for that exacerbation (e.g., medical non-compliance vs arrhythmia)."
         },
         "Explanation of Lead Diagnosis": {
-            "title": "Explanation of lead diagnosis",
+            "title": "Explanation of Lead Diagnosis",
             "desc": "Explains the reasoning behind the lead diagnosis, including the epidemiology and key features and how these compare with the patient's presentation. If objective data points are not clearly linked to the lead diagnosis or alternative diagnosis, then only designate points to lead OR alternative diagnosis and NOT both."
         },
         "Explanation of Alternative Diagnoses": {
-            "title": "Alternative diagnoses explained",
+            "title": "Explanation of Alternative Diagnoses",
             "desc": "Explains the reasoning behind alternative diagnoses, including the epidemiology and key features and how these compare with the patient's presentation and alternative diagnosis. If objective data points are not clearly linked to the lead diagnosis or alternative diagnosis, then only designate points to lead OR alternative diagnosis and NOT both."
         }
     },
     "Plan": {
         "Plan": {
-            "title": "Well reasoned plan",
+            "title": "Plan",
             "desc": "Defined as including reasons for diagnostic testing and treatments and summarizing the evidence used to support decisions."
         }
     }
