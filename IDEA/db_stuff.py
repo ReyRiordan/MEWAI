@@ -335,19 +335,6 @@ def fix_times():
         target.insert_one(doc)
 
 
-def transfer_data():
-    client = MongoClient(DB_URI)
-    source = client['Benchmark']['AI_Eval.M2_test']
-    target = client['Benchmark']['AI_Eval.M2_test_v3']
-    docs = list(source.find())
-    
-    target.insert_many(docs)
-
-    # for doc in docs:
-    #     doc['sim_info'] = doc.pop("interview_info")
-    #     doc['evaluation'] = doc.pop("feedback")
-    #     source.replace_one({"_id": doc['_id']}, doc)
-
 def edit_data():
     client = MongoClient(DB_URI)
     source = client['Benchmark']['Interviews.M2_test']
@@ -380,5 +367,53 @@ def export_group_evals():
         json.dump(to_export, export_file, indent=2)
 
 
+def print_prompt():
+    base_prompt_path = "Evaluate_10-5-25"
+    user_prompt = "<Summary Statement>EXAMPLE STUDENT RESPONSE</Summary Statement>"
+    rubric = RUBRIC['Summary Statement']['Summary Statement']
+
+    with open(f"./Prompts/{base_prompt_path}.txt", 'r') as prompt_file:
+        base_prompt = prompt_file.read()
+
+    def format_rubric(rubric: dict) -> str:
+        lines = ["FEATURES:"]
+        for key, desc in rubric['features'].items():
+            lines.append(f"\t{key}. {desc}")
+        
+        lines.append("\nSCORING:")
+        for points, criteria in rubric['points'].items():
+            lines.append(f"\t{points} points: {criteria}")
+        
+        return "\n".join(lines)
+
+    def create_prompt(prompt: str, rubric: dict) -> str:
+        prompt = prompt.replace("<title></title>", f"<title>{rubric['title']}</title>")
+        prompt = prompt.replace("<desc></desc>", f"<desc>{rubric['desc']}</desc>")
+        formatted_rubric = format_rubric(rubric)
+        prompt = prompt.replace("<rubric></rubric>", f"<rubric>{formatted_rubric}</rubric>")
+
+        return prompt
+
+    system_prompt = create_prompt(base_prompt, rubric)
+
+    print(system_prompt)
+    print("\n")
+    print(user_prompt)
+
+
+def transfer_data():
+    client = MongoClient(DB_URI)
+    source = client['Benchmark']['AI_Eval.M2_test']
+    target = client['Benchmark']['AI_Eval.M2_test_v3']
+    docs = list(source.find())
+    
+    target.insert_many(docs)
+
+    # for doc in docs:
+    #     doc['sim_info'] = doc.pop("interview_info")
+    #     doc['evaluation'] = doc.pop("feedback")
+    #     source.replace_one({"_id": doc['_id']}, doc)
+
+
 if __name__ == "__main__":
-    transfer_data()
+    print_prompt()
