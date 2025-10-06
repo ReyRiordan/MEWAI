@@ -1,3 +1,6 @@
+import warnings
+warnings.filterwarnings("ignore", message="Field name .* shadows an attribute in parent")
+
 import time
 from datetime import datetime
 from docx import Document
@@ -17,9 +20,20 @@ from lookups import *
 def create_prompt(prompt: str, rubric: dict) -> str:
     prompt = prompt.replace("<title></title>", f"<title>{rubric['title']}</title>")
     prompt = prompt.replace("<desc></desc>", f"<desc>{rubric['desc']}</desc>")
-    exclude = ['title', 'desc', 'html', 'extra_context']
-    to_insert = {k: v for k, v in rubric.items() if k not in exclude}
-    prompt = prompt.replace("<rubric></rubric>", f"<rubric>{to_insert}</rubric>")
+
+    def format_rubric(rubric: dict) -> str:
+        lines = ["FEATURES:"]
+        for key, desc in rubric['features'].items():
+            lines.append(f"\t{key}. {desc}")
+        
+        lines.append("\nSCORING:")
+        for points, criteria in rubric['points'].items():
+            lines.append(f"\t{points} points: {criteria}")
+        
+        return "\n".join(lines)
+    
+    formatted_rubric = format_rubric(rubric)
+    prompt = prompt.replace("<rubric></rubric>", f"<rubric>{formatted_rubric}</rubric>")
 
     return prompt
 
@@ -58,6 +72,7 @@ def extract_from_output(output: str) -> dict:
 # https://openrouter.ai/docs/api-reference/chat-completion
 def generate(model_info: dict, base_prompt: str, rubric: dict, user_prompt: str) -> dict:
     system_prompt = create_prompt(base_prompt, rubric)
+
     url = "https://openrouter.ai/api/v1/chat/completions"
     payload = {
         "model": model_info['id'],
@@ -97,7 +112,7 @@ def evaluate(model_id: str, which: str, netid = None, patient = None) -> None:
     # DB SETTINGS
     client = MongoClient(DB_URI)
     source = client['Benchmark']['Interviews.M2_test']
-    target = client['Benchmark']['AI_Eval.M2_test']
+    target = client['Benchmark']['AI_Eval.M2_test_exp']
     
     # GET SIMS TO EVAL
     sims = ""
@@ -180,7 +195,7 @@ def evaluate(model_id: str, which: str, netid = None, patient = None) -> None:
 if __name__ == "__main__":
     evaluate(
         model_id = "anthropic/claude-sonnet-4.5",
-        which = "all",
+        which = "rem",
         # netid = "mi360",
         # patient = "Jeffrey Smith"
     )
