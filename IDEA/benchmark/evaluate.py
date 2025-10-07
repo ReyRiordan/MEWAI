@@ -97,7 +97,11 @@ def generate(model_info: dict, base_prompt: str, rubric: dict, user_prompt: str)
     raw = requests.post(url, json=payload, headers=headers)
     raw = raw.json()
 
-    output = raw['choices'][0]['message']['content']
+    try:
+        output = raw['choices'][0]['message']['content']
+    except:
+        print(raw)
+        raise ValueError()
     eval = extract_from_output(output) # reasoning, grade, feedback
     usage = {
         'input_tokens': raw['usage']['prompt_tokens'],
@@ -112,7 +116,7 @@ def evaluate(model_id: str, which: str, netid = None, patient = None) -> None:
     # DB SETTINGS
     client = MongoClient(DB_URI)
     source = client['Benchmark']['Interviews.M2_test']
-    target = client['Benchmark']['AI_Eval.M2_test_exp']
+    target = client['Benchmark']['AI_Eval.M2_test']
     
     # GET SIMS TO EVAL
     sims = ""
@@ -194,8 +198,8 @@ def evaluate(model_id: str, which: str, netid = None, patient = None) -> None:
 
 if __name__ == "__main__":
     evaluate(
-        model_id = "anthropic/claude-sonnet-4.5",
-        which = "rem",
+        model_id = "anthropic/claude-sonnet-4",
+        which = "all",
         # netid = "mi360",
         # patient = "Jeffrey Smith"
     )

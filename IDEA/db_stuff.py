@@ -1,3 +1,6 @@
+import warnings
+warnings.filterwarnings("ignore", message="Field name .* shadows an attribute in parent")
+
 import time
 from datetime import datetime
 from docx import Document
@@ -403,8 +406,8 @@ def print_prompt():
 
 def transfer_data():
     client = MongoClient(DB_URI)
-    source = client['Benchmark']['AI_Eval.M2_test']
-    target = client['Benchmark']['AI_Eval.M2_test_v3']
+    source = client['Benchmark']['AI_Eval.M2_test_exp']
+    target = client['Benchmark']['AI_Eval.M2_test']
     docs = list(source.find())
     
     target.insert_many(docs)
@@ -416,4 +419,4 @@ def transfer_data():
 
 
 if __name__ == "__main__":
-    print_prompt()
+    transfer_data()

@@ -13,7 +13,7 @@ from evaluate import *
 
 client = MongoClient(DB_URI)
 group_eval_source = client['Benchmark']['Group_Eval.M2_test']
-AI_EVALS = list(client['Benchmark']['AI_Eval.M2_test_exp'].find({}, {'_id': 0, 'username': 1, 'model_info': 1, 'sim_info': 1, 'evaluation': 1}))
+AI_EVALS = list(client['Benchmark']['AI_Eval.M2_test'].find({}, {'_id': 0, 'username': 1, 'model_info': 1, 'sim_info': 1, 'evaluation': 1}))
 HUMAN_EVALS = list(client['Benchmark']['Human_Eval.M2_test_copy'].find({}, {'_id': 0, 'username': 1, 'model_info': 1, 'sim_info': 1, 'evaluation': 1}))
 ALL_EVALS = AI_EVALS + HUMAN_EVALS
 
