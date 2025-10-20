@@ -30,6 +30,8 @@ for eval in ALL_EVALS:
                      "Explanation of Alternative Diagnoses", 
                      "Plan"]:
             temp[part] = {'correct': 0, 'total': 0}
+        for feature in ["A", "B", "C"]:
+            temp["Explanation of Lead Diagnosis"][feature] = 0
         results[eval['username']] = temp
 
     result = results[eval['username']]
@@ -50,9 +52,14 @@ for eval in ALL_EVALS:
                 elif correct_features[feature] == "TRUE" and grade == True:
                     result[part]['correct'] += 1
                     result['all']['correct'] += 1
+                    if part == "Explanation of Lead Diagnosis":
+                        result[part][feature] += 1
                 elif correct_features[feature] == "FALSE" and grade == False:
                     result[part]['correct'] += 1
                     result['all']['correct'] += 1
+                    if part == "Explanation of Lead Diagnosis":
+                        result[part][feature] += 1
+
                 
 for part, result in results["Fac1"].items():
     print(f"{part}:")
@@ -60,3 +67,9 @@ for part, result in results["Fac1"].items():
         result = results[username][part]
         print(f"{username}: {result['correct']}/{result['total']} -> {result['correct']/result['total']}")
     print("\n")
+
+    if part == "Explanation of Lead Diagnosis":
+        for username in results:
+            result = results[username][part]
+            for feature in ["A", "B", "C"]:
+                print(f"{username} {feature}: {result[feature]}/30 -> {result[feature]/30}")
