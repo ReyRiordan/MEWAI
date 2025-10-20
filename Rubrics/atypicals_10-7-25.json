@@ -8,7 +8,7 @@
                 "D": "Mentions location of pain/pressure (chest pain/pressure/discomfort, angina, substernal/epigastric pain/pressure, upper abdominal pain/burning, dyspepsia, reflux, heartburn)",
                 "E": "Time course - Mentions episodic nature of pain (intermittent, episodic, recurrent, on-and-off, exertional, brought on by, made worse with, post-prandial, relieved by rest)",
                 "F": "Time course - Mentions progression of pain (worsening, more frequent, more severe, progressive)",
-                "G": "Semantic qualifiers - at least 2 of: “intermittent”, “recurrent”, “episodic”, “chronic”, “acutely worse”, “progressive”, “risk factors for cardiac/GI disease”, “atypical”, “unstable”/“stable”, “exertional”, “post-prandial”)"
+                "G": "Semantic qualifiers - at least 2 of: “intermittent”, “recurrent”, “episodic”, “chronic”, “acutely worse”, “progressive”, “risk factors for cardiac/GI disease”, “atypical”, “unstable”/“stable”, “exertional”, “post-prandial”"
             },
             "points": {
                 "4": "All features are present",
