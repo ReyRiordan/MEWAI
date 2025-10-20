@@ -134,7 +134,7 @@ def evaluate(model_id: str, which: str, netid = None, patient = None) -> None:
         "id": model_id,
         "temperature": None,
         "thinking": True,
-        "prompt_id": "Evaluate_10-5-25",
+        "prompt_id": "Evaluate_10-20-25",
         "usage": {
             "input_tokens": 0,
             "output_tokens": 0
@@ -198,7 +198,7 @@ def evaluate(model_id: str, which: str, netid = None, patient = None) -> None:
 
 if __name__ == "__main__":
     evaluate(
-        model_id = "anthropic/claude-sonnet-4",
+        model_id = "anthropic/claude-sonnet-4.5",
         which = "all",
         # netid = "mi360",
         # patient = "Jeffrey Smith"
