@@ -156,7 +156,7 @@ def display_comparison_part(evaluations: dict, section: str, part: str) -> None:
                 df_group[k].append(v)
         else:
             df_group[key].append(value)
-    print(f"df_group:\n {df_group}")
+    # print(f"df_group:\n {df_group}")
     config_group = {
         # 'evaler': st.column_config.Column("", width="medium", pinned=True),
         'comment': st.column_config.Column(f"Comment", width="large"), 
@@ -199,7 +199,7 @@ def display_comparison(interview: dict, evaluations: list[dict]) -> None:
 
 def display_part_group(evaluations: dict, eval: dict, section: str, part: str, sim_id: str) -> None:
     values = eval[section][part]
-    print(values)
+    # print(values)
     rubric = RUBRIC[section][part]
     prefix = f"{sim_id}_{part}" # Use sim_id to make keys unique across simulations
 
