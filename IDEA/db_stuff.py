@@ -406,8 +406,8 @@ def print_prompt():
 
 def transfer_data():
     client = MongoClient(DB_URI)
-    source = client['Benchmark']['AI_Eval.M2_test_exp']
-    target = client['Benchmark']['AI_Eval.M2_test']
+    source = client['Benchmark']['AI_Eval.M2_test']
+    target = client['Benchmark']['AI_Eval.M2_test_v5']
     docs = list(source.find())
     
     target.insert_many(docs)
