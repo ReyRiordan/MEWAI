@@ -89,27 +89,31 @@ def export_to_excel_old(output_file: str):
 
 def export_to_excel(output_file: str):
     client = MongoClient(DB_URI)
-    # source1 = client['Benchmark']['AI_Eval.M2_test']
+    source1 = client['Benchmark']['AI_Eval.M2_test']
     source2 = client['Benchmark']['Human_Eval.M2_test']
+    source3 = client['Benchmark']['Group_Eval.M2_test']
     query = {"username": 1,
              "sim_info": 1,
              "time_spent": 1,
              "evaluation": 1}
-    # docs1 = list(source1.find({}, query))
-    docs = list(source2.find({}, query))
-    # docs = docs2 + docs1 # human first ig
+    docs1 = list(source1.find({}, query))
+    docs2 = list(source2.find({}, query))
+    docs3 = list(source3.find({}, query))
+    docs = docs2 + docs3 + docs1 # order? human -> group -> AI
     
-    combined_list = []
+    master_dict = {}
 
     for doc in docs:
         if doc['username'] == "admin": continue
-
-        current_dict = {"eval_id": doc['_id'], 
-                        "username": doc['username'], 
-                        "sim_id": doc['sim_info']['_id'], 
-                        "netid": doc['sim_info']['netid'], 
-                        "patient": doc['sim_info']['patient'], 
-                        "time_spent": doc['time_spent']}
+        
+        sim_id = doc['sim_info']['_id']
+        if sim_id not in master_dict:
+            master_dict[sim_id] = {
+                "sim_id": doc['sim_info']['_id'], 
+                "netid": doc['sim_info']['netid'], 
+                "patient": doc['sim_info']['patient'], 
+            }
+        current_dict = master_dict[sim_id]
         
         eval = doc['evaluation']
 
@@ -118,29 +122,31 @@ def export_to_excel(output_file: str):
             for key, value in eval_part['features'].items():
                 grades_dict[prefix + key] = 1 if value else 0
             grades_dict[prefix + 'score'] = eval_part['score']
-            grades_dict[prefix + 'comment'] = eval_part['comment']
+            # grades_dict[prefix + 'comment'] = eval_part['comment']
             return grades_dict
         
-        summary_grades = extract_grades(eval['Summary Statement']['Summary Statement'], "sum_")
+        pre = doc['username']
+        if pre == "anthropic/claude-sonnet-4.5":
+            pre = "AI"
+        
+        summary_grades = extract_grades(eval['Summary Statement']['Summary Statement'], f"{pre}_sum_")
         current_dict.update(summary_grades)
 
-        diff_grades = extract_grades(eval['Assessment']['Differential Diagnosis'], "diff_")
+        diff_grades = extract_grades(eval['Assessment']['Differential Diagnosis'], f"{pre}_diff_")
         current_dict.update(diff_grades)
 
-        exlead_grades = extract_grades(eval['Assessment']['Explanation of Lead Diagnosis'], "exlead_")
+        exlead_grades = extract_grades(eval['Assessment']['Explanation of Lead Diagnosis'], f"{pre}_exlead_")
         current_dict.update(exlead_grades)
 
-        exalt_grades = extract_grades(eval['Assessment']['Explanation of Alternative Diagnoses'], "exalt_")
+        exalt_grades = extract_grades(eval['Assessment']['Explanation of Alternative Diagnoses'], f"{pre}_exalt_")
         current_dict.update(exalt_grades)
 
-        plan_grades = extract_grades(eval['Plan']['Plan'], "plan_")
+        plan_grades = extract_grades(eval['Plan']['Plan'], f"{pre}_plan_")
         current_dict.update(plan_grades)
 
-        combined_list.append(current_dict)
+    master_list = list(master_dict.values())
 
-    combined_list.sort(key=lambda x: (x.get('sim_id', ''), x.get('username', '')))
-
-    df = pd.DataFrame(combined_list)
+    df = pd.DataFrame(master_list)
 
     with pd.ExcelWriter(output_file, engine='openpyxl') as writer:
         df.to_excel(writer, sheet_name='ALL', index=False)
@@ -149,4 +155,4 @@ def export_to_excel(output_file: str):
 
 
 if __name__ == "__main__":
-    export_to_excel("IDEA/benchmark/data/eval_data_25-9-25.xlsx")
+    export_to_excel("IDEA/benchmark/data/eval_data_10-20-25.xlsx")
