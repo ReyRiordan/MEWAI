@@ -199,7 +199,7 @@ def evaluate(model_id: str, which: str, netid = None, patient = None) -> None:
 if __name__ == "__main__":
     evaluate(
         model_id = "anthropic/claude-sonnet-4.5",
-        which = "all",
+        which = "rem",
         # netid = "mi360",
         # patient = "Jeffrey Smith"
     )

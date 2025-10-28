@@ -406,8 +406,8 @@ def print_prompt():
 
 def transfer_data():
     client = MongoClient(DB_URI)
-    source = client['Benchmark']['AI_Eval.M2_test']
-    target = client['Benchmark']['AI_Eval.M2_test_v5']
+    source = client['Benchmark']['Group_Eval.M2_test']
+    target = client['Backup']['Group_Eval.M2_test_FINAL']
     docs = list(source.find())
     
     target.insert_many(docs)
@@ -418,5 +418,78 @@ def transfer_data():
     #     source.replace_one({"_id": doc['_id']}, doc)
 
 
+def auto_score(part: str, features: dict[str, bool]) -> int:
+        num_present = 0
+        for f in features:
+            if features[f]: num_present += 1
+
+        if part == "Summary Statement":
+            if features['A']:
+                if num_present == 7: return 4
+                elif num_present >= 5 and features['G']: return 3
+                elif num_present >= 3: return 2
+                elif num_present >= 2: return 1
+                else: return 0
+            else:
+                return 0
+        elif part == "Differential Diagnosis":
+            if features['A'] and features['B'] and features['C'] and features['D']: return 2
+            elif features['A'] and num_present >= 2: return 1
+            else: return 0
+        elif part == "Explanation of Lead Diagnosis":
+            if num_present >= 3: return 2
+            elif features['A'] and num_present >= 2: return 1
+            else: return 0
+        elif part == "Explanation of Alternative Diagnoses":
+            if num_present >= 3: return 2
+            elif features['A'] and num_present >= 2: return 1
+            else: return 0
+        elif part == "Plan":
+            if num_present >= 5: return 3
+            elif features['A'] and ((features['B'] and features['D']) or (features['C'] and features['E'])): return 2
+            else: return 1
+
+def format_and_score_group_evals():
+    client = MongoClient(DB_URI)
+    source = client['Benchmark']['Group_Eval.M2_test']
+    docs = list(source.find())
+
+    for doc in docs:
+        for section in doc['evaluation']:
+            for part, grading in doc['evaluation'][section].items():
+                for feature, value in grading['features'].items():
+                    if value == "TRUE":
+                        grading['features'][feature] = True
+                    elif value == "FALSE":
+                        grading['features'][feature] = False
+                grading['score'] = auto_score(part, grading['features'])
+            
+        source.update_one(
+            {'_id': doc['_id']},
+            {'$set': {'evaluation': doc['evaluation']}}
+        )
+
+
+def check_AI_scoring_acc():
+    client = MongoClient(DB_URI)
+    source = client['Benchmark']['AI_Eval.M2_test']
+    docs = list(source.find())
+
+    result = {'correct': 0, 'total': 0}
+    errors = 0
+    for doc in docs:
+        for section in doc['evaluation']:
+            for part, grading in doc['evaluation'][section].items():
+                correct_score = auto_score(part, grading['features'])
+                if grading['score'] != correct_score:
+                    errors += 1
+                else:
+                    result['correct'] += 1
+                result['total'] += 1
+    
+    print(f"{result['correct']}/{result['total']} -> {result['correct']/result['total']}")
+    print(f"Errors: {errors}")
+
+
 if __name__ == "__main__":
-    transfer_data()
+    check_AI_scoring_acc()
