@@ -2,6 +2,7 @@ import os
 import time
 import tempfile
 import requests
+import json
 
 import gradio as gr
 import numpy as np
@@ -12,6 +13,7 @@ from fastrtc import (
     AdditionalOutputs,
     ReplyOnPause,
     Stream,
+    AlgoOptions,
     get_twilio_turn_credentials,
     get_tts_model,
     KokoroTTSOptions
@@ -19,31 +21,48 @@ from fastrtc import (
 from gradio.utils import get_space
 from numpy.typing import NDArray
 
-# -----------------------------
-# Load env
-# -----------------------------
+
 load_dotenv('.venv/.env')
 OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY")
+FIREWORKS_API_KEY = os.getenv("FIREWORKS_API_KEY")
+
+PATHS = {
+    "convo_base": "./Prompts/Base_10-28-25.txt",
+    "convo_sum": "./Prompts/Summarizer_4-22.txt",
+    "patient": "./Patient_Info/JohnSmith_NEW.json"
+}
+with open(PATHS["convo_base"], "r", encoding="utf8") as base_file:
+    BASE_PROMPT = base_file.read()
+with open(PATHS["convo_sum"], "r", encoding="utf8") as sum_file:
+    SUM_PROMPT = sum_file.read()
+with open(PATHS["patient"], "r", encoding="utf8") as patient_file:
+    PATIENT = json.load(patient_file)
+
+def process_case(case: dict):
+    case_prompt = ""
+    for category in case:
+        case_prompt += f"<{category}>\n"
+        if category == "demographics":
+            for detail, desc in case[category].items():
+                case_prompt += f"{detail}: {desc}\n"
+        elif category == "chief_complaint":
+            case_prompt += case[category] + "\n"
+        else:
+            for element in case[category]:
+                case_prompt += element + "\n"
+        case_prompt += f"</{category}>\n"
+    
+    return case_prompt
+
+base = str(BASE_PROMPT.replace("{patient}", PATIENT['case']['demographics']['name']))
+CONVO_PROMPT = base + process_case(PATIENT['case'])
 
 
-# -----------------------------
-# ASR: NeMo Parakeet
-# -----------------------------
-# Model: nvidia/parakeet-tdt-0.6b-v2
-# Note: This may require a GPU for good real-time performance.
+# ASR
 import nemo.collections.asr as nemo_asr
-
-
 class ParakeetSTT:
     def __init__(self):
         self.model = nemo_asr.models.ASRModel.from_pretrained("nvidia/parakeet-tdt-0.6b-v2")
-        # Optionally move to CUDA if available:
-        # try:
-        #     import torch
-        #     if torch.cuda.is_available():
-        #         self.model = self.model.to("cuda")
-        # except Exception:
-        #     pass
 
     def stt(self, audio: tuple[int, NDArray[np.int16 | np.float32]]) -> str:
         """audio = (sample_rate, np.ndarray)"""
@@ -76,18 +95,54 @@ class ParakeetSTT:
             except Exception:
                 pass
 
+class WhisperSTT:
+    def __init__(self, api_key: str):
+        self.api_key = api_key
+        self.url = "https://audio-prod.api.fireworks.ai/v1/audio/transcriptions"
+    
+    def transcribe(self, audio: tuple[int, NDArray[np.int16 | np.float32]]) -> str:
+        sr, arr = audio
+        # Expecting mono. If shape is (1, N), squeeze to (N,)
+        if arr.ndim > 1:
+            arr = np.squeeze(arr, axis=0)
 
-stt_model = ParakeetSTT()
+        # Ensure int16 PCM for WAV
+        if arr.dtype != np.int16:
+            arr = np.clip(arr, -1.0, 1.0)
+            arr = (arr * 32767.0).astype(np.int16)
+        
+        with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as f:
+            temp_path = f.name
+            sf.write(temp_path, arr, sr, subtype="PCM_16")
 
-# -----------------------------
-# LLM: Grok-4-fast via OpenRouter
-# -----------------------------
+        with open(temp_path, "rb") as audio_file:
+            response = requests.post(
+                self.url,
+                headers={"Authorization": f"Bearer {self.api_key}"},
+                files={"file": audio_file},
+                data={
+                    "model": "whisper-v3",
+                    "temperature": "0",
+                    "vad_model": "silero"
+                },
+            )
+        if response.status_code == 200:
+            output = response.json()
+            return output['text']
+
+        else:
+            raise Exception(f"Transcription failed: {response.status_code} - {response.text}")
+            
+STT = WhisperSTT(FIREWORKS_API_KEY)
+
+
+# LLM
 class OpenRouterChat:
     def __init__(self, api_key: str):
         self.api_key = api_key
         self.url = "https://openrouter.ai/api/v1/chat/completions"
 
-    def chat(self, messages: list[dict], system_prompt: str | None = None) -> str:
+    def chat(self, messages: list[dict], system_prompt: str) -> str:
         payload = {
             "model": "x-ai/grok-4-fast",
             "reasoning": {"enabled": False},
@@ -100,42 +155,34 @@ class OpenRouterChat:
         headers = {
             "Authorization": f"Bearer {self.api_key}",
             "Content-Type": "application/json",
-            # Optional but recommended:
-            # "HTTP-Referer": "http://localhost:7860",
-            # "X-Title": "FastRTC Voice Assistant",
         }
         resp = requests.post(self.url, json=payload, headers=headers, timeout=120)
         resp.raise_for_status()
         data = resp.json()
         return data["choices"][0]["message"]["content"]
 
+LLM = OpenRouterChat(OPENROUTER_API_KEY)
 
-llm_client = OpenRouterChat(OPENROUTER_API_KEY)
 
-
-# -----------------------------
-# TTS: Kokoro (built-in)
-# -----------------------------
+# TTS
 tts_model = get_tts_model(model="kokoro")
 tts_options = KokoroTTSOptions(
-    voice=os.getenv("KOKORO_VOICE", "af_sarah"),
-    speed=float(os.getenv("KOKORO_SPEED", "1.0")),
+    voice=os.getenv("KOKORO_VOICE", "am_puck"),
+    speed=float(os.getenv("KOKORO_SPEED", "1.2")),
     lang=os.getenv("KOKORO_LANG", "en-us"),
 )
 
 
-# -----------------------------
-# FastRTC handler
-# -----------------------------
-DEFAULT_SYSTEM_PROMPT = "You are a helpful, concise voice assistant."
-
+# FastRTC
 def response(audio: tuple[int, NDArray[np.int16 | np.float32]], session_id: str | None,chatbot: list[dict] | None = None):
+    print(audio)
+    
     chatbot = chatbot or []
     messages = [{"role": d["role"], "content": d["content"]} for d in chatbot]
 
     # ASR
     t0 = time.time()
-    text = stt_model.stt(audio)
+    text = STT.transcribe(audio)
     print("transcription time (s):", round(time.time() - t0, 3))
     print("user:", text)
 
@@ -148,7 +195,7 @@ def response(audio: tuple[int, NDArray[np.int16 | np.float32]], session_id: str 
 
     # LLM
     t1 = time.time()
-    response_text = llm_client.chat(messages, system_prompt=DEFAULT_SYSTEM_PROMPT)
+    response_text = LLM.chat(messages, CONVO_PROMPT)
     print("llm time (s):", round(time.time() - t1, 3))
     print("assistant:", response_text)
 
@@ -161,13 +208,14 @@ def response(audio: tuple[int, NDArray[np.int16 | np.float32]], session_id: str 
 
     yield AdditionalOutputs(chatbot)
 
-
-
-# -----------------------------
-# Gradio + FastRTC app
-# -----------------------------
 chatbot = gr.Chatbot(type="messages")
 
+# https://fastrtc.org/advanced-configuration/
+options = AlgoOptions(
+    audio_chunk_duration=1.0,
+    started_talking_threshold=0.5,
+    speech_threshold=0.1,
+)
 stream = Stream(
     modality="audio",
     mode="send-receive",
