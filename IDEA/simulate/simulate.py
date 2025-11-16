@@ -20,11 +20,13 @@ from fastrtc import (
 )
 from gradio.utils import get_space
 from numpy.typing import NDArray
+import base64
 
 
 load_dotenv('.venv/.env')
 OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY")
 FIREWORKS_API_KEY = os.getenv("FIREWORKS_API_KEY")
+INWORLD_API_KEY = os.getenv("INWORLD_API_KEY")
 
 PATHS = {
     "convo_base": "./Prompts/Base_10-28-25.txt",
@@ -138,13 +140,13 @@ STT = WhisperSTT(FIREWORKS_API_KEY)
 
 # LLM
 class OpenRouterChat:
-    def __init__(self, api_key: str):
-        self.api_key = api_key
+    def __init__(self):
+        self.api_key = OPENROUTER_API_KEY
         self.url = "https://openrouter.ai/api/v1/chat/completions"
 
     def chat(self, messages: list[dict], system_prompt: str) -> str:
         payload = {
-            "model": "x-ai/grok-4-fast",
+            "model": "anthropic/claude-haiku-4.5",
             "reasoning": {"enabled": False},
             "messages": [],
         }
@@ -161,16 +163,72 @@ class OpenRouterChat:
         data = resp.json()
         return data["choices"][0]["message"]["content"]
 
-LLM = OpenRouterChat(OPENROUTER_API_KEY)
+LLM = OpenRouterChat()
 
 
 # TTS
-tts_model = get_tts_model(model="kokoro")
-tts_options = KokoroTTSOptions(
-    voice=os.getenv("KOKORO_VOICE", "am_puck"),
-    speed=float(os.getenv("KOKORO_SPEED", "1.2")),
-    lang=os.getenv("KOKORO_LANG", "en-us"),
-)
+class InworldTTS:
+    def __init__(self):
+        self.api_key = INWORLD_API_KEY
+        self.url = "https://api.inworld.ai/tts/v1/voice:stream"
+
+    def stream_tts_sync(self, response_text: str, options: dict):
+        payload = {
+            "text": response_text,
+            "voiceId": options['voice'],
+            "modelId": "inworld-tts-1",
+            "audio_config": {
+                "audio_encoding": "LINEAR16",
+                "sample_rate_hertz": 48000,
+                "speakingRate": options['speed']
+            },
+        }
+        headers = {
+            "Authorization": f"Basic {self.api_key}",
+            "Content-Type": "application/json",
+        }
+        response = requests.post(self.url, json=payload, headers=headers, stream=True)
+        response.raise_for_status()
+        
+        sample_rate = payload["audio_config"]["sample_rate_hertz"]
+
+        for line in response.iter_lines():
+            if not line:
+                continue
+            try:
+                # Decode if bytes
+                if isinstance(line, bytes):
+                    line = line.decode('utf-8')
+                chunk = json.loads(line)
+
+                audio_chunk = base64.b64decode(chunk["result"]["audioContent"])
+                
+                # Skip WAV header (44 bytes)
+                if len(audio_chunk) > 44:
+                    pcm = audio_chunk[44:]
+                    # Convert raw bytes (16-bit signed) to numpy array
+                    waveform = np.frombuffer(pcm, dtype=np.int16).astype(np.float32) / 32768.0
+                    yield (sample_rate, waveform)
+                    
+            except json.JSONDecodeError as e:
+                print(f"JSON decode error: {e}, Line content: {line}")
+                continue
+            except Exception as e:
+                print(f"Error processing chunk: {e}, Line: {line}")
+                continue
+    
+# TTS = get_tts_model(model="kokoro")
+# tts_options = KokoroTTSOptions(
+#     voice=os.getenv("KOKORO_VOICE", "am_puck"),
+#     speed=float(os.getenv("KOKORO_SPEED", "1.2")),
+#     lang=os.getenv("KOKORO_LANG", "en-us"),
+# )
+
+TTS = InworldTTS()
+tts_options = {
+    'voice': 'Craig',
+    'speed': 1.0
+}
 
 
 # FastRTC
@@ -202,7 +260,7 @@ def response(audio: tuple[int, NDArray[np.int16 | np.float32]], session_id: str 
     chatbot.append({"role": "assistant", "content": response_text})
 
     # TTS: synchronous streaming
-    for audio_out in tts_model.stream_tts_sync(response_text, options=tts_options):
+    for audio_out in TTS.stream_tts_sync(response_text, options=tts_options):
         # audio_out is (sample_rate, np.ndarray) and can be yielded directly
         yield audio_out
 
