@@ -406,8 +406,8 @@ def print_prompt():
 
 def transfer_data():
     client = MongoClient(DB_URI)
-    source = client['Benchmark']['Group_Eval.M2_test']
-    target = client['Backup']['Group_Eval.M2_test_FINAL']
+    source = client['Backup']['Group.M2_test']
+    target = client['Backup']['Group_Eval.M2_test_old']
     docs = list(source.find())
     
     target.insert_many(docs)
@@ -416,6 +416,20 @@ def transfer_data():
     #     doc['sim_info'] = doc.pop("interview_info")
     #     doc['evaluation'] = doc.pop("feedback")
     #     source.replace_one({"_id": doc['_id']}, doc)
+
+def edit_data():
+    client = MongoClient(DB_URI)
+    source = client['Benchmark']['AI_Eval.M2_test_conf']
+    target = client['Benchmark']['AI_Eval.M2_test_conf']
+    doc = source.find_one({
+        'sim_info.netid': "de252", 
+        'sim_info.patient': "Sarah Thompson"
+    })
+
+    grading = doc['evaluation']['Explanation of Lead Diagnosis']['features']['features']
+    doc['evaluation']['Explanation of Lead Diagnosis']['features'] = grading
+
+    source.replace_one({'_id': doc['_id']}, doc)
 
 
 def auto_score(part: str, features: dict[str, bool]) -> int:
@@ -492,4 +506,4 @@ def check_AI_scoring_acc():
 
 
 if __name__ == "__main__":
-    check_AI_scoring_acc()
+    transfer_data()
