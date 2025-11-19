@@ -20,10 +20,9 @@
       "date_of_birth": "December 5th 1959"
     },
     "chief_complaint": "You came to the hospital because you were experiencing a heaviness in your chest. You are nervous about your symptoms because your father died suddenly of a heart attack when he was 50.",
-    "free": [
+    "free_information": [
       "heaviness came on gradually, seated at desk at home when symptoms appeared",
       "it was pretty severe when it first started, gradually improved and is now gone",
-      "location is center of chest",
       "started around 2 hours ago, got better on the way here and stopped 20-30 minutes ago",
       "You were feeling slightly nauseated and sweaty prior to arriving, but you feel better now.",
       "You have been fully boosted for COVID, but do not always get a flu vaccine.",
@@ -34,7 +33,7 @@
       "You have had difficulty maintaining an erection for the past 2 years and have considered speaking to your doctor about this.",
       "You do get pain in your left leg when you walk, a cramp in the calf. It goes away when you stop walking."
     ],
-    "locked": [
+    "locked_information": [
       "feels like a weight on the chest",
       "location is center of chest",
       "pattern of symptom was constant when it occurred",
