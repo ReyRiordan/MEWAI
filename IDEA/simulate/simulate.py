@@ -29,7 +29,7 @@ FIREWORKS_API_KEY = os.getenv("FIREWORKS_API_KEY")
 INWORLD_API_KEY = os.getenv("INWORLD_API_KEY")
 
 PATHS = {
-    "convo_base": "./Prompts/Base_10-28-25.txt",
+    "convo_base": "./Prompts/Base_11-17-25.txt",
     "convo_sum": "./Prompts/Summarizer_4-22.txt",
     "patient": "./Patient_Info/JohnSmith_NEW.json"
 }
@@ -269,22 +269,22 @@ def response(audio: tuple[int, NDArray[np.int16 | np.float32]], session_id: str 
 chatbot = gr.Chatbot(type="messages")
 
 # https://fastrtc.org/advanced-configuration/
-options = AlgoOptions(
-    audio_chunk_duration=1.0,
-    started_talking_threshold=0.5,
-    speech_threshold=0.1,
+algo_options = AlgoOptions(
+    audio_chunk_duration=0.6,
+    started_talking_threshold=0.3,
+    speech_threshold=0.3,
 )
 stream = Stream(
     modality="audio",
     mode="send-receive",
-    handler=ReplyOnPause(response, input_sample_rate=16000),
+    handler=ReplyOnPause(response, input_sample_rate=16000, algo_options=algo_options),
     additional_outputs_handler=lambda a, b: b,
     additional_inputs=[chatbot],
     additional_outputs=[chatbot],
     rtc_configuration=get_twilio_turn_credentials() if get_space() else None,
     concurrency_limit=5 if get_space() else None,
     time_limit=90 if get_space() else None,
-    ui_args={"title": "LLM Voice Chat (Parakeet + Grok-4-fast + Kokoro + WebRTC)"},
+    ui_args={"title": "LLM Voice Chat"},
 )
 
 app = FastAPI()
