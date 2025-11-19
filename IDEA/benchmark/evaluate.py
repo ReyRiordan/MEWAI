@@ -239,7 +239,7 @@ def evaluate(model_id: str, which: str, netid = None, patient = None) -> None:
 
 if __name__ == "__main__":
     evaluate(
-        model_id = "anthropic/claude-haiku-4.5",
+        model_id = "google/gemini-3-pro-preview",
         which = "rem",
         # netid = "mi360",
         # patient = "Jeffrey Smith"
