@@ -21,10 +21,10 @@ from dotenv import load_dotenv
 
 load_dotenv('.venv/.env')
 DB_URI = os.getenv("DB_URI")
-TARGET_COLLECTION = "AI_Eval.M2_test_flag"
+TARGET_COLLECTION = "AI_Eval.M2_test_flag_2"
 OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY")
 
-PROMPT_ID = "Evalflag_11-14-25"
+PROMPT_ID = "Evalflag_11-17-25"
 BASE_RUBRIC_ID = "base_new"
 RUBRIC_ID = "atypicals_11-14-25"
 
@@ -79,13 +79,13 @@ def extract_from_output(output_raw: str) -> dict:
         print(f"ERROR: Could not parse grade JSON")
         print(output_raw)
 
-    eval = {"features": {}}
-    for key in output_dict:
-        if key != "score":
-            eval['features'][key] = output_dict[key]
-    eval['score'] = output_dict['score']
+    # eval = {"features": {}}
+    # for key in output_dict:
+    #     if key != "score":
+    #         eval['features'][key] = output_dict[key]
+    # eval['score'] = output_dict['score']
 
-    return eval
+    return output_dict
 
     # def extract(tag: str):
     #     match = re.search(rf'<{tag}>([\s\S]*?)</{tag}>', output)

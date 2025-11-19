@@ -143,7 +143,11 @@ for eval in AI_EVALS:
             
             result[f"{part} score"]['total'] += 1
             result["All scores"]['total'] += 1
-            if eval['evaluation'][part]['score'] == correct_score:
+            if "score" in eval['evaluation'][part]:
+                score = eval['evaluation'][part]['score']
+            else:
+                score = eval['evaluation'][part]['scoring']['score']
+            if score == correct_score:
                 result[f"{part} score"]['correct'] += 1
                 result["All scores"]['correct'] += 1
 
