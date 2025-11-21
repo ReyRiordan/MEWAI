@@ -15,7 +15,7 @@ from lookups import *
 
 client = MongoClient(DB_URI)
 group_eval_source = client['Benchmark']['Group_Eval.M2_test']
-AI_EVALS = list(client['Benchmark']['AI_Eval.M2_test_flag'].find({}, {'_id': 0, 'username': 1, 'model_info': 1, 'sim_info': 1, 'evaluation': 1}))
+AI_EVALS = list(client['Benchmark']['AI_Eval.M2_test_flag_3'].find({}, {'_id': 0, 'username': 1, 'model_info': 1, 'sim_info': 1, 'evaluation': 1}))
 HUMAN_EVALS = list(client['Benchmark']['Human_Eval.M2_test_copy'].find({}, {'_id': 0, 'username': 1, 'model_info': 1, 'sim_info': 1, 'evaluation': 1}))
 # ALL_EVALS = AI_EVALS + HUMAN_EVALS
 
@@ -201,7 +201,7 @@ data = {
 
 df = pd.DataFrame(data, index=dims)
 
-# Write to Excel
-output_path = "IDEA/benchmark/data/eval_data_11-17-25.xlsx"
-with pd.ExcelWriter(output_path, engine="openpyxl") as writer:
-    df.to_excel(writer, sheet_name="Accuracy")
+# # Write to Excel
+# output_path = "IDEA/benchmark/data/eval_data_11-17-25.xlsx"
+# with pd.ExcelWriter(output_path, engine="openpyxl") as writer:
+#     df.to_excel(writer, sheet_name="Accuracy")

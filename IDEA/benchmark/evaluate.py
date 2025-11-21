@@ -21,10 +21,10 @@ from dotenv import load_dotenv
 
 load_dotenv('.venv/.env')
 DB_URI = os.getenv("DB_URI")
-TARGET_COLLECTION = "AI_Eval.M2_test_flag_2"
+TARGET_COLLECTION = "AI_Eval.M2_test_flag_3"
 OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY")
 
-PROMPT_ID = "Evalflag_11-17-25"
+PROMPT_ID = "Evalflag_11-18-25"
 BASE_RUBRIC_ID = "base_new"
 RUBRIC_ID = "atypicals_11-14-25"
 
@@ -120,7 +120,9 @@ def extract_from_output(output_raw: str) -> dict:
 def generate(model_info: dict, base_prompt: str, rubric: dict, user_prompt: str) -> dict:
     system_prompt = create_prompt(base_prompt, rubric)
     print("System: ", len(system_prompt))
+    print(system_prompt)
     print("User: ", len(user_prompt))
+    print(user_prompt)
 
     url = "https://openrouter.ai/api/v1/chat/completions"
     payload = {
@@ -211,7 +213,7 @@ def evaluate(model_id: str, which: str, netid = None, patient = None) -> None:
         for part, rubric in RUBRIC.items():
             user_prompt = ""
             for section in rubric['sections']:
-                user_prompt += f"<{section}>{post_note[section]}</{section}>\n"
+                user_prompt += f"{section.upper()}:\n{post_note[section]}\n\n"
             
 
             part_eval = generate(model_info, base_prompt, rubric, user_prompt)
