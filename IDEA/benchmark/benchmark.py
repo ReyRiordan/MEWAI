@@ -15,7 +15,7 @@ from lookups import *
 
 client = MongoClient(DB_URI)
 group_eval_source = client['Benchmark']['Group_Eval.M2_test']
-AI_EVALS = list(client['Benchmark']['AI_Eval.M2_test_flag_3'].find({}, {'_id': 0, 'username': 1, 'model_info': 1, 'sim_info': 1, 'evaluation': 1}))
+AI_EVALS = list(client['Benchmark']['AI_Eval.M2_test_flag_5'].find({}, {'_id': 0, 'username': 1, 'model_info': 1, 'sim_info': 1, 'evaluation': 1}))
 HUMAN_EVALS = list(client['Benchmark']['Human_Eval.M2_test_copy'].find({}, {'_id': 0, 'username': 1, 'model_info': 1, 'sim_info': 1, 'evaluation': 1}))
 # ALL_EVALS = AI_EVALS + HUMAN_EVALS
 
@@ -169,37 +169,37 @@ for username in results:
 #         print(f"{username}: {result['correct']}/{result['total']} -> {result['correct']/result['total']}")
 
 
-def fmt_cell(res):
-    total = res.get('total', 0)
-    correct = res.get('correct', 0)
-    acc = round(correct / total, 4) if total else 0.0
-    percent = acc * 100
-    return f"{correct}/{total} -> {percent:.2f}%"
+# def fmt_cell(res):
+#     total = res.get('total', 0)
+#     correct = res.get('correct', 0)
+#     acc = round(correct / total, 4) if total else 0.0
+#     percent = acc * 100
+#     return f"{correct}/{total} -> {percent:.2f}%"
 
-# Collect the union of all dimensions (rows) across users, preserving a sensible order
-seen = set()
-all_dims = []
+# # Collect the union of all dimensions (rows) across users, preserving a sensible order
+# seen = set()
+# all_dims = []
 
-for user, dims in results.items():
-    for dim in dims.keys():
-        if dim not in seen:
-            seen.add(dim)
-            all_dims.append(dim)
+# for user, dims in results.items():
+#     for dim in dims.keys():
+#         if dim not in seen:
+#             seen.add(dim)
+#             all_dims.append(dim)
 
-# Optional: prioritize common top-level rows
-dims = [d for d in all_dims]
+# # Optional: prioritize common top-level rows
+# dims = [d for d in all_dims]
 
-# Build a DataFrame: columns = usernames, rows = dimensions
-usernames = sorted(results.keys())
-data = {
-    user: [
-        fmt_cell(results[user].get(dim, {'correct': 0, 'total': 0}))
-        for dim in dims
-    ]
-    for user in usernames
-}
+# # Build a DataFrame: columns = usernames, rows = dimensions
+# usernames = sorted(results.keys())
+# data = {
+#     user: [
+#         fmt_cell(results[user].get(dim, {'correct': 0, 'total': 0}))
+#         for dim in dims
+#     ]
+#     for user in usernames
+# }
 
-df = pd.DataFrame(data, index=dims)
+# df = pd.DataFrame(data, index=dims)
 
 # # Write to Excel
 # output_path = "IDEA/benchmark/data/eval_data_11-17-25.xlsx"

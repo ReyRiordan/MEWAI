@@ -21,10 +21,10 @@ from dotenv import load_dotenv
 
 load_dotenv('.venv/.env')
 DB_URI = os.getenv("DB_URI")
-TARGET_COLLECTION = "AI_Eval.M2_test_flag_3"
+TARGET_COLLECTION = "AI_Eval.M2_test_flag_5"
 OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY")
 
-PROMPT_ID = "Evalflag_11-18-25"
+PROMPT_ID = "Evalflag_11-24-25"
 BASE_RUBRIC_ID = "base_new"
 RUBRIC_ID = "atypicals_11-14-25"
 
@@ -119,10 +119,10 @@ def extract_from_output(output_raw: str) -> dict:
 # https://openrouter.ai/docs/api-reference/chat-completion
 def generate(model_info: dict, base_prompt: str, rubric: dict, user_prompt: str) -> dict:
     system_prompt = create_prompt(base_prompt, rubric)
-    print("System: ", len(system_prompt))
-    print(system_prompt)
-    print("User: ", len(user_prompt))
-    print(user_prompt)
+    # print("System: ", len(system_prompt))
+    # print(system_prompt)
+    # print("User: ", len(user_prompt))
+    # print(user_prompt)
 
     url = "https://openrouter.ai/api/v1/chat/completions"
     payload = {
