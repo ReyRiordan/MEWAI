@@ -1,0 +1,46 @@
+{
+    "Key Findings": {
+        "title": "Key physical exam findings",
+        "desc": "Defined as including an exam that highlights the absence and presence of key exam findings, as suggested by the diagnostic possibilities."
+    },
+    "HPI1": {
+        "title": "Detailed history of presenting illness",
+        "desc": "Defined as including a complete description of the complaint(s) such as location, quality, severity, duration, timing, radiation, and factors that aggravate or alleviate symptoms."
+    },
+    "HPI2": {
+        "title": "Descriptive history of present illness",
+        "desc": "Defined by use of semantic and descriptive vocabulary such as acute or chronic, sharp or dull, continuous or intermittent."
+    },
+    "HPI3": {
+        "title": "Chronologic history of presenting illness",
+        "desc": "Defined as telling a clear story that flows logically."
+    },
+    "PH1": {
+        "title": "Contextualized history of presenting illness",
+        "desc": "Defined by identification and inclusion of key findings from past, family and social history and relevant other symptoms that might otherwise belong in later portions of the comprehensive history."
+    },
+    "PH2": {
+        "title": "Complete comprehensive history",
+        "desc": "Defined as a complete past, family, and social histories and complete review of systems."
+    },
+    "Summary Statement": {
+        "title": "Summary Statement",
+        "desc": "Provides a concise summary statement that uses semantic vocabulary to highlight the most important elements from history, exam, and testing to interpret and represent the patient's main problem(s). The presence or absence of the following features is assessed: key risk factors, chief complaint, illness time course, and use of semantic qualifiers (e.g., monoarticular vs polyarticular) or unified medical concepts (e.g., volume overload, cardiovascular risk factors)."
+    },
+    "Differential Diagnosis": {
+        "title": "Differential Diagnosis",
+        "desc": "Offers more than one relevant diagnostic possibility, committing to what is most likely and considering what is less likely or unlikely yet important to consider for the main chief complaint. If the chief complaint is a diagnosis or syndrome (e.g., acute on chronic systolic heart failure) then differential to rate may be around the differential for that exacerbation (e.g., medical non-compliance vs arrhythmia)."
+    },
+    "Explanation of Lead Diagnosis": {
+        "title": "Explanation of Lead Diagnosis",
+        "desc": "Explains the reasoning behind the lead diagnosis, including the epidemiology and key features and how these compare with the patient's presentation. If objective data points are not clearly linked to the lead diagnosis or alternative diagnosis, then only designate points to lead OR alternative diagnosis and NOT both."
+    },
+    "Explanation of Alternative Diagnoses": {
+        "title": "Explanation of Alternative Diagnoses",
+        "desc": "Explains the reasoning behind alternative diagnoses, including the epidemiology and key features and how these compare with the patient's presentation and alternative diagnosis. If objective data points are not clearly linked to the lead diagnosis or alternative diagnosis, then only designate points to lead OR alternative diagnosis and NOT both."
+    },
+    "Plan": {
+        "title": "Plan",
+        "desc": "Defined as including reasons for diagnostic testing and treatments and summarizing the evidence used to support decisions."
+    }
+}

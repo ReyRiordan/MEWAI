@@ -1,3 +1,6 @@
+import warnings
+warnings.filterwarnings("ignore", message="Field name .* shadows an attribute in parent")
+
 import time
 from datetime import datetime
 from docx import Document
@@ -335,20 +338,6 @@ def fix_times():
         target.insert_one(doc)
 
 
-def transfer_data():
-    client = MongoClient(DB_URI)
-    source = client['Benchmark']['AI_Eval.M2_test']
-    target = client['Benchmark']['AI_Eval.M2_test_old']
-    docs = list(source.find())
-    
-    target.insert_many(docs)
-
-    # for doc in docs:
-    #     doc['sim_info'] = doc.pop("interview_info")
-    #     doc['evaluation'] = doc.pop("feedback")
-    #     source.replace_one({"_id": doc['_id']}, doc)
-
-
 def edit_data():
     client = MongoClient(DB_URI)
     source = client['Benchmark']['Interviews.M2_test']
@@ -361,6 +350,160 @@ def edit_data():
             "post_note_inputs.Past Histories": ""
         }}
     )
+
+
+def export_group_evals():
+    client = MongoClient(DB_URI)
+    source = client['Benchmark']['Group_Eval.M2_test']
+    docs = list(source.find())
+
+    to_export = []
+    for doc in docs:
+        eval = {
+            'sim_info': doc['sim_info'],
+            'evaluation': doc['evaluation']
+        }
+        eval['sim_info'].pop('_id')
+        to_export.append(eval)
+
+    with open("./IDEA/benchmark/group_evals.json", 'w') as export_file:
+        json.dump(to_export, export_file, indent=2)
+
+
+def print_prompt():
+    base_prompt_path = "Evaluate_10-5-25"
+    user_prompt = "<Summary Statement>EXAMPLE STUDENT RESPONSE</Summary Statement>"
+    rubric = RUBRIC['Summary Statement']['Summary Statement']
+
+    with open(f"./Prompts/{base_prompt_path}.txt", 'r') as prompt_file:
+        base_prompt = prompt_file.read()
+
+    def format_rubric(rubric: dict) -> str:
+        lines = ["FEATURES:"]
+        for key, desc in rubric['features'].items():
+            lines.append(f"\t{key}. {desc}")
+        
+        lines.append("\nSCORING:")
+        for points, criteria in rubric['points'].items():
+            lines.append(f"\t{points} points: {criteria}")
+        
+        return "\n".join(lines)
+
+    def create_prompt(prompt: str, rubric: dict) -> str:
+        prompt = prompt.replace("<title></title>", f"<title>{rubric['title']}</title>")
+        prompt = prompt.replace("<desc></desc>", f"<desc>{rubric['desc']}</desc>")
+        formatted_rubric = format_rubric(rubric)
+        prompt = prompt.replace("<rubric></rubric>", f"<rubric>{formatted_rubric}</rubric>")
+
+        return prompt
+
+    system_prompt = create_prompt(base_prompt, rubric)
+
+    print(system_prompt)
+    print("\n")
+    print(user_prompt)
+
+
+def transfer_data():
+    client = MongoClient(DB_URI)
+    source = client['Backup']['Group.M2_test']
+    target = client['Backup']['Group_Eval.M2_test_old']
+    docs = list(source.find())
+    
+    target.insert_many(docs)
+
+    # for doc in docs:
+    #     doc['sim_info'] = doc.pop("interview_info")
+    #     doc['evaluation'] = doc.pop("feedback")
+    #     source.replace_one({"_id": doc['_id']}, doc)
+
+def edit_data():
+    client = MongoClient(DB_URI)
+    source = client['Benchmark']['AI_Eval.M2_test_conf']
+    target = client['Benchmark']['AI_Eval.M2_test_conf']
+    doc = source.find_one({
+        'sim_info.netid': "de252", 
+        'sim_info.patient': "Sarah Thompson"
+    })
+
+    grading = doc['evaluation']['Explanation of Lead Diagnosis']['features']['features']
+    doc['evaluation']['Explanation of Lead Diagnosis']['features'] = grading
+
+    source.replace_one({'_id': doc['_id']}, doc)
+
+
+def auto_score(part: str, features: dict[str, bool]) -> int:
+        num_present = 0
+        for f in features:
+            if features[f]: num_present += 1
+
+        if part == "Summary Statement":
+            if features['A']:
+                if num_present == 7: return 4
+                elif num_present >= 5 and features['G']: return 3
+                elif num_present >= 3: return 2
+                elif num_present >= 2: return 1
+                else: return 0
+            else:
+                return 0
+        elif part == "Differential Diagnosis":
+            if features['A'] and features['B'] and features['C'] and features['D']: return 2
+            elif features['A'] and num_present >= 2: return 1
+            else: return 0
+        elif part == "Explanation of Lead Diagnosis":
+            if num_present >= 3: return 2
+            elif features['A'] and num_present >= 2: return 1
+            else: return 0
+        elif part == "Explanation of Alternative Diagnoses":
+            if num_present >= 3: return 2
+            elif features['A'] and num_present >= 2: return 1
+            else: return 0
+        elif part == "Plan":
+            if num_present >= 5: return 3
+            elif features['A'] and ((features['B'] and features['D']) or (features['C'] and features['E'])): return 2
+            else: return 1
+
+def format_and_score_group_evals():
+    client = MongoClient(DB_URI)
+    source = client['Benchmark']['Group_Eval.M2_test']
+    docs = list(source.find())
+
+    for doc in docs:
+        for section in doc['evaluation']:
+            for part, grading in doc['evaluation'][section].items():
+                for feature, value in grading['features'].items():
+                    if value == "TRUE":
+                        grading['features'][feature] = True
+                    elif value == "FALSE":
+                        grading['features'][feature] = False
+                grading['score'] = auto_score(part, grading['features'])
+            
+        source.update_one(
+            {'_id': doc['_id']},
+            {'$set': {'evaluation': doc['evaluation']}}
+        )
+
+
+def check_AI_scoring_acc():
+    client = MongoClient(DB_URI)
+    source = client['Benchmark']['AI_Eval.M2_test']
+    docs = list(source.find())
+
+    result = {'correct': 0, 'total': 0}
+    errors = 0
+    for doc in docs:
+        for section in doc['evaluation']:
+            for part, grading in doc['evaluation'][section].items():
+                correct_score = auto_score(part, grading['features'])
+                if grading['score'] != correct_score:
+                    errors += 1
+                else:
+                    result['correct'] += 1
+                result['total'] += 1
+    
+    print(f"{result['correct']}/{result['total']} -> {result['correct']/result['total']}")
+    print(f"Errors: {errors}")
+
 
 if __name__ == "__main__":
     transfer_data()

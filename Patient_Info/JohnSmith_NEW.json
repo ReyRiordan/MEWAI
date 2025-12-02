@@ -1,0 +1,53 @@
+{
+  "id": "John Smith",
+  "assets": {
+    "avatar": null,
+    "physical_exam": "./Patient_Info/JohnSmith_physical.docx",
+    "ECG": "./Patient_Info/JohnSmith_ECG.png",
+    "case_explanation": "./Patient_Info/JohnSmith_explanation.pdf"
+  },
+  "speech": {
+    "provider": "openai",
+    "model": "tts-1",
+    "voice": "onyx"
+  },
+  "case": {
+    "demographics": {
+      "name": "John Smith",
+      "sex": "M",
+      "race": "White",
+      "ethnicity": null,
+      "date_of_birth": "December 5th 1959"
+    },
+    "chief_complaint": "You came to the hospital because you were experiencing a heaviness in your chest. You are nervous about your symptoms because your father died suddenly of a heart attack when he was 50.",
+    "free_information": [
+      "heaviness came on gradually, seated at desk at home when symptoms appeared",
+      "it was pretty severe when it first started, gradually improved and is now gone",
+      "started around 2 hours ago, got better on the way here and stopped 20-30 minutes ago",
+      "You were feeling slightly nauseated and sweaty prior to arriving, but you feel better now.",
+      "You have been fully boosted for COVID, but do not always get a flu vaccine.",
+      "You had a hernia in your groin that was repaired when you were 26.",
+      "You do not have any allergies that you are aware of.",
+      "Your father died suddenly of a heart attack when he was 50 years old.",
+      "Your mother passed away from breast cancer two years ago.",
+      "You have had difficulty maintaining an erection for the past 2 years and have considered speaking to your doctor about this.",
+      "You do get pain in your left leg when you walk, a cramp in the calf. It goes away when you stop walking."
+    ],
+    "locked_information": [
+      "feels like a weight on the chest",
+      "location is center of chest",
+      "pattern of symptom was constant when it occurred",
+      "You have never had chest pain or pressure like you are experiencing now, but have experienced a milder chest discomfort when walking (thought this was heart burn or you had a stomach problem). Discomfort would happen when walking up long hill near end of route, where you would take an antacid and feel better.",
+      "You also felt an aching pain in your jaw and both shoulders when the pressure was at its worst",
+      "you have not noticed anything that makes the heaviness worse",
+      "you took two or three tums but had no relief",
+      "You have been stressed about your finances recently.",
+      "You've had high blood pressure since you were 50. You take a water pill for that and were recently started on another new medication.",
+      "You've had high cholesterol for many years and take a statin for this.",
+      "On your most recent visit to your doctor, she said you have pre-diabetes - you are not sure what this means, but she recommended you lose weight. To lose weight, you started a walking program; this was about 6 months ago.",
+      "Read this list from your phone if asked for specific medications: \"Hydrochlorothiazide, Amlodipine, Atorvastatin\".",
+      "You are a former smoker. You started smoking when you were in college at 19 years old and quit about 5 years ago. You smoked about one pack per day.",
+      "You drink about 2 glasses of wine or a cocktail during the week, more on the weekend."
+    ]
+  }
+}

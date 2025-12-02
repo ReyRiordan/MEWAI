@@ -8,7 +8,6 @@ import datetime as date
 import base64
 import io
 import streamlit as st
-from audiorecorder import audiorecorder
 from openai import OpenAI
 from annotated_text import annotated_text
 import json
@@ -18,6 +17,7 @@ from typing import List
 from lookups import *
 import string
 import pandas as pd
+import copy
 
 
 # --------- HUMAN_EVAL DISPLAYS -----------
@@ -101,7 +101,7 @@ def display_evaluation(interview: dict, evaluation: dict) -> dict:
     return evaluation
 
 
-# ---------- VIEW_EVAL DISPLAYS -----------
+# ---------- VIEW_EVALS DISPLAYS -----------
 
 def display_comparison_part(evaluations: dict, section: str, part: str) -> None:
     rubric = RUBRIC[section][part]
@@ -109,8 +109,17 @@ def display_comparison_part(evaluations: dict, section: str, part: str) -> None:
     for letter in rubric['features']:
         df[letter] = []
     df['comment'] = []
+    # df['time'] = []
+
+    group_evaluation = evaluations['Group']
+    # df_group = {'evaler': ["Group"]}
+    df_group = {}
+    for letter in rubric['features']:
+        df_group[letter] = []
+    df_group['comment'] = []
 
     for evaler in list(evaluations.keys()):
+        if evaler == "Group": continue
         df['evaler'].append(evaler)
         if evaluations[evaler]:
             inputs = evaluations[evaler]['evaluation'][section][part]
@@ -125,6 +134,7 @@ def display_comparison_part(evaluations: dict, section: str, part: str) -> None:
                     df[key].append(value)
                 else:
                     df[key].append(value)
+            # df['time'].append(evaluations[evaler]['time_spent'])
         else:
             for key in df: 
                 if key != 'evaler': df[key].append(None)
@@ -132,10 +142,27 @@ def display_comparison_part(evaluations: dict, section: str, part: str) -> None:
     config = {
         'evaler': st.column_config.Column("Evaluator", width="small", pinned=True),
         'score': st.column_config.Column(f"Score / {next(iter(rubric['points']))}", width="small"),
-        'comment': st.column_config.Column(f"Comment", width="large")
+        'comment': st.column_config.Column(f"Comment", width="large"), 
+        # 'time': st.column_config.Column(f"Time", width="small")
     }
     df = pd.DataFrame(df)
     st.dataframe(df, column_config=config, hide_index=True, use_container_width=True)
+
+    group_inputs = group_evaluation['evaluation'][section][part]
+    for key, value in group_inputs.items():
+        if key not in ['comment', 'features']: continue
+        elif key == 'features':
+            for k, v in group_inputs['features'].items(): 
+                df_group[k].append(v)
+        else:
+            df_group[key].append(value)
+    # print(f"df_group:\n {df_group}")
+    config_group = {
+        # 'evaler': st.column_config.Column("", width="medium", pinned=True),
+        'comment': st.column_config.Column(f"Comment", width="large"), 
+    }
+    df_group = pd.DataFrame(df_group)
+    st.dataframe(df_group, column_config=config_group, hide_index=True, use_container_width=True)
 
     with st.container(border=True):
         st.html(rubric["html"])
@@ -168,6 +195,95 @@ def display_comparison(interview: dict, evaluations: list[dict]) -> None:
                 else:
                     display_comparison_part(evaluations, section, section)
 
+# ---------- GROUP EVAL DISPLAY -----------
+
+def display_part_group(evaluations: dict, eval: dict, section: str, part: str, sim_id: str) -> None:
+    values = eval[section][part]
+    # print(values)
+    rubric = RUBRIC[section][part]
+    prefix = f"{sim_id}_{part}" # Use sim_id to make keys unique across simulations
+
+    # ----------- DISPLAY COMPARISON ------------
+    df = {'evaler': [], 'score': []}
+    for letter in rubric['features']:
+        df[letter] = []
+    df['comment'] = []
+
+    for evaler in list(evaluations.keys()):
+        df['evaler'].append(evaler)
+        if evaluations[evaler]:
+            inputs = evaluations[evaler]['evaluation'][section][part]
+            for key, value in inputs.items():
+                if key not in ['comment', 'features', 'score']: continue
+                elif key == 'features':
+                    for k, v in inputs['features'].items(): 
+                        df[k].append(v)
+                elif key == 'score':
+                    if value is not None:
+                        value = int(value)
+                    df[key].append(value)
+                else:
+                    df[key].append(value)
+            # df['time'].append(evaluations[evaler]['time_spent'])
+        else:
+            for key in df: 
+                if key != 'evaler': df[key].append(None)
+
+    config = {
+        'evaler': st.column_config.Column("Evaluator", width="small", pinned=True),
+        'score': st.column_config.Column(f"Score / {next(iter(rubric['points']))}", width="small"),
+        'comment': st.column_config.Column(f"Comment", width="large"), 
+        # 'time': st.column_config.Column(f"Time", width="small")
+    }
+    df = pd.DataFrame(df)
+    st.dataframe(df, column_config=config, hide_index=True, use_container_width=True)
+
+    # ---------- ACTUAL GROUP GRADING -----------
+    features = values['features']
+    for i, (key, value) in enumerate(features.items()):
+        layout = st.columns([1, 5])
+        label = f"**{key}**: {rubric['features'][key]}"
+        options = ["TRUE", "FALSE", "EITHER"]
+        index = options.index(value) if value else None
+        features[key] = layout[0].selectbox(label,
+                                            options = options,
+                                            index = index, 
+                                            key = f"{prefix}_feature_{key}"+str(i),
+                                            placeholder = "Select...",
+                                            label_visibility="collapsed")
+        layout[1].write(label)
+        
+    # values["score"] = st.text_input("**Score** (optional, can be list of valid scores?)", 
+    #                                 key = f"{prefix}_score", 
+    #                                 value = values["score"])
+    
+    values["comment"] = st.text_area("**Comments** (optional)", 
+                                    key = f"{prefix}_comment", 
+                                    value = values["comment"])
+
+def display_evaluation_group(interview: dict, evaluation: dict, evaluations: dict) -> dict:
+    sim_id = str(interview["_id"])  # Get unique sim ID
+    student_responses = interview["post_note_inputs"]
+    for section in student_responses:
+        with st.container(border = True):
+            st.subheader(f"{section}", divider = "grey")
+            layout1 = st.columns([2, 3])
+
+            with layout1[0]:
+                st.html(f"<span style=\"font-size: larger;\"><b>Student Response:</b></span>")
+                st.write(student_responses[section])
+
+            with layout1[1]:
+                if len(evaluation[section]) > 1:
+                    parts = list(evaluation[section].keys())
+                    tabs = st.tabs(parts)
+                    for i, part in enumerate(parts):
+                        with tabs[i]:
+                            display_part_group(evaluations, evaluation, section, part, sim_id)
+                else:
+                    display_part_group(evaluations, evaluation, section, section, sim_id)
+        
+    return evaluation
 
 
 # ----------------------------------------------

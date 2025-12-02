@@ -22,8 +22,9 @@ load_dotenv('.venv/.env')
 #         "CLIENT": }
 
 # SECRETS
-LOGIN_PASS = os.getenv("LOGIN_PASS")
+# LOGIN_PASS = os.getenv("LOGIN_PASS")
 DB_URI = os.getenv("DB_URI")
+OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY")
 # DATABASE_USERNAME=os.getenv("DB_USERNAME")
 # DATABASE_PASSWORD=os.getenv("DB_PASSWORD")
 
@@ -140,7 +141,7 @@ MAX_MEMORY = 12 # no limit rn
 BATCH_MAX = 20
 BATCH_DELAY = 60
 
-RUBRIC_ID = "atypicals_8-5-25"
+RUBRIC_ID = "atypicals_10-7-25"
 
 with open("./Rubrics/base.json", "r") as rubric_base_file:
     rubric_base = json.load(rubric_base_file)

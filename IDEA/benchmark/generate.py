@@ -19,7 +19,7 @@ from google import genai
 def create_prompt(prompt: str, rubric: dict) -> str:
     prompt = prompt.replace("<title></title>", f"<title>{rubric['title']}</title>")
     prompt = prompt.replace("<desc></desc>", f"<desc>{rubric['desc']}</desc>")
-    exclude = ['title', 'desc', 'html']
+    exclude = ['title', 'desc', 'html', 'extra_context']
     to_insert = {k: v for k, v in rubric.items() if k not in exclude}
     prompt = prompt.replace("<rubric></rubric>", f"<rubric>{to_insert}</rubric>")
 
@@ -59,7 +59,7 @@ def extract_from_output(output: str) -> dict:
 
 
 # https://docs.anthropic.com/en/api/messages
-def generate_anthropic(model_info: dict, system_prompt: str, student_response: str) -> dict:
+def generate_anthropic(model_info: dict, system_prompt: str, user_prompt: str) -> dict:
     client = Anthropic()
 
     # Generate output
@@ -74,7 +74,7 @@ def generate_anthropic(model_info: dict, system_prompt: str, student_response: s
             },
             max_tokens = 4096,
             messages = [
-                {"role": "user", "content": student_response},
+                {"role": "user", "content": user_prompt},
                 # {"role": "assistant", "content": prefill}
             ]
         )
@@ -92,7 +92,7 @@ def generate_anthropic(model_info: dict, system_prompt: str, student_response: s
 
 
 # https://platform.openai.com/docs/api-reference/responses/create
-def generate_openai(model_info: dict, system_prompt: str, student_response: str) -> dict:
+def generate_openai(model_info: dict, system_prompt: str, user_prompt: str) -> dict:
     client = OpenAI()
 
     # Generate output
@@ -103,7 +103,7 @@ def generate_openai(model_info: dict, system_prompt: str, student_response: str)
             reasoning = {
                 'effort': 'medium',
             },
-            input = student_response
+            input = user_prompt
         )
     output = raw_output.output[1].content[0].text
     # print(output)
@@ -119,7 +119,7 @@ def generate_openai(model_info: dict, system_prompt: str, student_response: str)
 
 
 # https://ai.google.dev/api/generate-content
-def generate_google(model_info: dict, system_prompt: str, student_response: str) -> dict:
+def generate_google(model_info: dict, system_prompt: str, user_prompt: str) -> dict:
     client = genai.Client()
 
     # Generate output
@@ -130,7 +130,7 @@ def generate_google(model_info: dict, system_prompt: str, student_response: str)
                 system_instruction = system_prompt,
                 thinking_config = genai.types.ThinkingConfig(thinking_budget=-1) # dynamic thinking
             ),
-            contents = student_response
+            contents = user_prompt
         )
     output = raw_output.text
     # print(output)
@@ -145,16 +145,16 @@ def generate_google(model_info: dict, system_prompt: str, student_response: str)
     return eval
 
 
-def generate_eval(model_info: dict, base_prompt: str, rubric: dict, student_response: str) -> dict:
+def generate_eval(model_info: dict, base_prompt: str, rubric: dict, user_prompt: str) -> dict:
     eval = None
     system_prompt = create_prompt(base_prompt, rubric)
     provider = model_info['provider']
 
     if provider == "anthropic":
-        eval = generate_anthropic(model_info, system_prompt, student_response)
+        eval = generate_anthropic(model_info, system_prompt, user_prompt)
     elif provider == "openai":
-        eval = generate_openai(model_info, system_prompt, student_response)
+        eval = generate_openai(model_info, system_prompt, user_prompt)
     elif provider == "google":
-        eval = generate_google(model_info, system_prompt, student_response)
+        eval = generate_google(model_info, system_prompt, user_prompt)
 
     return eval

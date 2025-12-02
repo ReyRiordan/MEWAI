@@ -7,11 +7,6 @@ import streamlit as st
 import streamlit.components.v1 as components
 # import streamlit_authenticator as auth
 import base64
-from sendgrid import SendGridAPIClient
-from sendgrid.helpers.mail import (
-    Mail, Attachment, FileContent, FileName,
-    FileType, Disposition, ContentId)
-from audiorecorder import audiorecorder
 from openai import OpenAI
 import tempfile
 from annotated_text import annotated_text
@@ -46,9 +41,12 @@ DB_CLIENT = init_connection()
 COLLECTION_INTERVIEWS = DB_CLIENT['Benchmark']['Interviews.M2_test']
 COLLECTION_EVALS_HUMAN = DB_CLIENT['Benchmark']['Human_Eval.M2_test']
 COLLECTION_EVALS_AI = DB_CLIENT['Benchmark']['AI_Eval.M2_test']
+COLLECTION_EVALS_GROUP = DB_CLIENT['Benchmark']['Group_Eval.M2_test']
 
 EVALUATORS_HUMAN = ['Fac1', 'Fac2', 'Fac3']
-EVALUATORS_AI = ['Claude 4S', 'GPT 5', 'Gemini 2.5P']
+# EVALUATORS_AI = ['Claude 4S', 'GPT 5', 'Gemini 2.5P']
+EVALUATORS_AI = ['anthropic/claude-sonnet-4.5']
+EVALUATORS_GROUP = ['Group']
 
 # OTHER
 def load_and_setup():
@@ -58,11 +56,12 @@ def load_and_setup():
 
     # Load evals
     evaluations = {}
-    for evaler in EVALUATORS_HUMAN + EVALUATORS_AI:
+    for evaler in EVALUATORS_HUMAN + EVALUATORS_AI + EVALUATORS_GROUP:
         evaluations[evaler] = None
     eval_list_human = list(COLLECTION_EVALS_HUMAN.find({'sim_info._id': interview_id}))
     eval_list_ai = list(COLLECTION_EVALS_AI.find({'sim_info._id': interview_id}))
-    eval_list = eval_list_human + eval_list_ai
+    eval_list_group = list(COLLECTION_EVALS_GROUP.find({'sim_info._id': interview_id}))
+    eval_list = eval_list_human + eval_list_ai + eval_list_group
     for eval in eval_list:
         if eval['username'] in evaluations:
             evaluations[eval['username']] = eval
