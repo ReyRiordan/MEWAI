@@ -12,6 +12,7 @@ from audiorecorder import audiorecorder
 from openai import OpenAI
 from anthropic import Anthropic
 from google import genai
+import requests
 
 import tempfile
 from annotated_text import annotated_text
@@ -72,28 +73,29 @@ def generate_feedback(title: str, desc: str, rubric: str, user_input: str, token
                 backoff *= 2  # Exponential backoff
 
 
-def generate_response(model: str, temperature: float, system: str, messages: list[dict[str, str]]) -> str:
-    # response = CHAT_CLIENT.messages.create(model = model, 
-    #                                        temperature = temperature, 
-    #                                        max_tokens = 1000, 
-    #                                        system = system, 
-    #                                        messages = messages)
-    # return response.content[0].text
-    response = CHAT_CLIENT.chat.completions.create(model = model,
-                                                   temperature = temperature,
-                                                   messages = [{"role": "system", "content": system}] + messages)
-    st.session_state["tokens"]["convo"]["input"] += response.usage.prompt_tokens
-    st.session_state["tokens"]["convo"]["output"] += response.usage.completion_tokens
-    return response.choices[0].message.content
-    # contents = []
-    # for message in messages:
-    #     contents.append({"role": message["role"], "parts": [{"text": message["content"]}]})
-    # response = GOOGLE_CLIENT.models.generate_content(
-    #     model = GOOGLE_MODEL,
-    #     config = genai.types.GenerateContentConfig(system_instruction=system),
-    #     contents = contents
-    # )
-    # return response.text
+def generate_response(model: str, temperature: float, system_prompt: str, messages: list[dict[str, str]]) -> str:
+    payload = {
+        "model": "anthropic/claude-haiku-4.5",
+        "reasoning": {"enabled": False},
+        "messages": [],
+    }
+    if system_prompt:
+        payload["messages"].append({"role": "system", "content": system_prompt})
+    payload["messages"].extend(messages)
+
+    headers = {
+        "Authorization": f"Bearer {OPENROUTER_API_KEY}",
+        "Content-Type": "application/json",
+    }
+
+    raw = requests.post("https://openrouter.ai/api/v1/chat/completions", 
+                         json=payload, headers=headers, timeout=120)
+    raw.raise_for_status()
+    data = raw.json()
+    
+    st.session_state["tokens"]["convo"]["input"] += data['usage']['prompt_tokens']
+    st.session_state["tokens"]["convo"]["output"] += data['usage']['completion_tokens']
+    return data["choices"][0]["message"]["content"]
 
 
 def transcribe_voice(voice_input):
@@ -131,9 +133,10 @@ def get_chat_output(user_input: str):
     st.session_state["convo_memory"].append({"role": "user", "content": user_input})
 
     response = generate_response(model = CONVO_MODEL, 
-                            temperature = CONVO_TEMP, 
-                            system = st.session_state["convo_prompt"] + st.session_state["convo_summary"], 
-                            messages = st.session_state["convo_memory"])
+                                 temperature = CONVO_TEMP, 
+                                 system_prompt = st.session_state["convo_prompt"] + st.session_state["convo_summary"], 
+                                 messages = st.session_state["convo_memory"])
+    
     speech = generate_voice(st.session_state["interview"].patient, response)
 
     st.session_state["interview"].add_message(Message(type="output", role="AI", content=response))

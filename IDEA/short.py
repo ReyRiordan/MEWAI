@@ -30,7 +30,7 @@ st.set_page_config(page_title = "MEWAI",
                    initial_sidebar_state="collapsed")
 
 if "stage" not in st.session_state:
-    st.session_state["stage"] = LOGIN_PAGE
+    st.session_state["stage"] = "LOGIN_PAGE"
 
 def set_stage(stage):
     st.session_state["stage"] = stage
@@ -57,7 +57,7 @@ def get_data(username: str = None) -> list[dict]:
 
 # APP CODE STARTS HERE
 
-if st.session_state["stage"] == ERROR:
+if st.session_state["stage"] == "ERROR":
     layout1 = st.columns([2, 3, 2])
     with layout1[1]:
         st.title("ERROR")
@@ -65,7 +65,7 @@ if st.session_state["stage"] == ERROR:
         st.write(f"Error details: {st.session_state['error_details']}")
 
 
-if st.session_state["stage"] == CLOSED:
+if st.session_state["stage"] == "CLOSED":
     layout1 = st.columns([2, 3, 2])
     with layout1[1]:
         st.title("CURRENTLY CLOSED")
@@ -73,7 +73,7 @@ if st.session_state["stage"] == CLOSED:
         st.write("rhr58@scarletmail.rutgers.edu")
 
 
-if st.session_state["stage"] == LOGIN_PAGE:
+if st.session_state["stage"] == "LOGIN_PAGE":
     layout1 = st.columns([2, 3, 2])
     with layout1[1]:
         st.title("Medical Interview Simulation (BETA)")
@@ -95,13 +95,13 @@ if st.session_state["stage"] == LOGIN_PAGE:
                     st.session_state["assignment"] = ASSIGNMENTS[username]
                     st.write("Authentication successful!")
                     time.sleep(1)
-                    set_stage(SETTINGS)
+                    set_stage("SETTINGS")
                     st.rerun()
                 else:
                     st.write("Password incorrect.")
 
 
-if st.session_state["stage"] == SETTINGS:
+if st.session_state["stage"] == "SETTINGS":
     st.session_state["interview"] = None
     st.session_state["messages"] = []
     st.session_state["convo_memory"] = []
@@ -168,8 +168,8 @@ if st.session_state["stage"] == SETTINGS:
                 st.session_state["convo_prompt"] = st.session_state["interview"].patient.convo_prompt
                 st.session_state["interview"].record_time("continue")
                 jump = 0 # WHERE TO CONTINUE FROM
-                if chat_mode == "Text": jump = CHAT_INTERFACE_TEXT
-                elif chat_mode == "Voice": jump = CHAT_INTERFACE_VOICE
+                if chat_mode == "Text": jump = "CHAT_INTERFACE_TEXT"
+                elif chat_mode == "Voice": jump = "CHAT_INTERFACE_VOICE"
                 if TBC["messages"]:
                     for message in TBC["messages"]:
                         st.session_state["interview"].add_message(Message(type=message["type"], role=message["role"], content=message["content"]))
@@ -180,10 +180,10 @@ if st.session_state["stage"] == SETTINGS:
                 if TBC["post_note_inputs"]:
                     st.session_state["interview"].post_note_inputs = TBC["post_note_inputs"]
                     st.session_state["saved_inputs"] = TBC["post_note_inputs"]
-                    jump = DIAGNOSIS
+                    jump = "DIAGNOSIS"
                 if TBC["feedback"]:
                     st.session_state["interview"].feedback = Feedback.restore_previous(TBC["feedback"]["feedback"]) # handle that weird feedback nesting sht
-                    jump = FEEDBACK_SCREEN
+                    jump = "FEEDBACK_SCREEN"
                 set_stage(jump)
                 st.rerun()
 
@@ -196,15 +196,15 @@ if st.session_state["stage"] == SETTINGS:
                 st.session_state["convo_prompt"] = st.session_state["interview"].patient.convo_prompt
                 COLLECTION.insert_one(st.session_state["interview"].model_dump()) # INSERT INTERVIEW
 
-                if chat_mode == "Text": chat_page = CHAT_INTERFACE_TEXT
-                elif chat_mode == "Voice": chat_page = CHAT_INTERFACE_VOICE
+                if chat_mode == "Text": chat_page = "CHAT_INTERFACE_TEXT"
+                elif chat_mode == "Voice": chat_page = "CHAT_INTERFACE_VOICE"
                 set_stage(chat_page)
                 st.rerun()
 
             else: st.write("Incomplete settings.")
 
 
-if st.session_state["stage"] == CHAT_INTERFACE_VOICE:
+if st.session_state["stage"] == "CHAT_INTERFACE_VOICE":
     layout1 = st.columns([1, 3, 1])
     with layout1[1]:
         st.title("Interview")
@@ -250,12 +250,12 @@ if st.session_state["stage"] == CHAT_INTERFACE_VOICE:
             update_interview()
 
         columns = st.columns(5)
-        columns[1].button("Restart", on_click=next_stage, args=[SETTINGS])
+        columns[1].button("Restart", on_click=next_stage, args=["SETTINGS"])
         columns[2].button("Save", on_click=save)
-        columns[3].button("End Interview", on_click=next_stage, args=[PHYSICAL_ECG_SCREEN])
+        columns[3].button("End Interview", on_click=next_stage, args=["PHYSICAL_ECG_SCREEN"])
 
 
-if st.session_state["stage"] == CHAT_INTERFACE_TEXT:
+if st.session_state["stage"] == "CHAT_INTERFACE_TEXT":
     layout1 = st.columns([1, 3, 1])
     with layout1[1]:
         st.title("Interview")
@@ -291,9 +291,9 @@ if st.session_state["stage"] == CHAT_INTERFACE_TEXT:
             update_interview()
 
         columns = st.columns(5)
-        columns[1].button("Restart", on_click=next_stage, args=[SETTINGS])
+        columns[1].button("Restart", on_click=next_stage, args=["SETTINGS"])
         columns[2].button("Save", on_click=save)
-        columns[3].button("End Interview", on_click=next_stage, args=[PHYSICAL_ECG_SCREEN])
+        columns[3].button("End Interview", on_click=next_stage, args=["PHYSICAL_ECG_SCREEN"])
 
 
 # if st.session_state["stage"] == KEY_PHYSICALS:
@@ -310,7 +310,7 @@ if st.session_state["stage"] == CHAT_INTERFACE_TEXT:
 #             st.rerun()
 
 
-if st.session_state["stage"] == PHYSICAL_ECG_SCREEN:
+if st.session_state["stage"] == "PHYSICAL_ECG_SCREEN":
     
     layout1 = st.columns([1, 3, 1])
     with layout1[1].container():
@@ -324,10 +324,10 @@ if st.session_state["stage"] == PHYSICAL_ECG_SCREEN:
         st.divider()
 
         layout11 = st.columns([1, 1, 1])
-        layout11[1].button("Proceed to Post Note", on_click=set_stage, args = [DIAGNOSIS], use_container_width=True)
+        layout11[1].button("Proceed to Post Note", on_click=set_stage, args = ["DIAGNOSIS"], use_container_width=True)
 
 
-if st.session_state["stage"] == DIAGNOSIS:
+if st.session_state["stage"] == "DIAGNOSIS":
     st.write("Write your post note as directed, then click \"Get Feedback\" to see how you did. Note that you can click \"Save\" to save your work and expand the text boxes by dragging the bottom-right corner.")
     st.divider()
 
@@ -379,7 +379,7 @@ if st.session_state["stage"] == DIAGNOSIS:
         st.session_state["saved_inputs"] = st.session_state["interview"].post_note_inputs
         st.session_state["interview"].record_time("get_feedback")
         update_interview()
-        set_stage(FEEDBACK_SETUP)
+        set_stage("FEEDBACK_SETUP")
         st.rerun()
 
     # New Interview
@@ -396,7 +396,7 @@ if st.session_state["stage"] == DIAGNOSIS:
                                                                 "Assessment": bad_case["Assessment"], 
                                                                 "Plan": bad_case["Plan"]})
             update_interview()
-            set_stage(FEEDBACK_SETUP)
+            set_stage("FEEDBACK_SETUP")
             st.rerun()
         if layout21[1].button("TEST: GOOD", use_container_width=True):
             with open("./IDEA/test_cases/good.json", "r", encoding="utf8") as good_json:
@@ -406,7 +406,7 @@ if st.session_state["stage"] == DIAGNOSIS:
                                                                 "Assessment": good_case["Assessment"], 
                                                                 "Plan": good_case["Plan"]})
             update_interview()
-            set_stage(FEEDBACK_SETUP)
+            set_stage("FEEDBACK_SETUP")
             st.rerun()
     else:
         # DOWNLOAD BUTTON?
@@ -422,34 +422,34 @@ if st.session_state["stage"] == DIAGNOSIS:
                                     mime = "docx")
 
 
-if st.session_state["stage"] == FEEDBACK_SETUP:
+if st.session_state["stage"] == "FEEDBACK_SETUP":
     st.title("Processing feedback...")
     st.write("This might take a few minutes.")
     st.session_state["interview"].add_feedback()
     st.session_state["interview"].update_tokens(st.session_state["tokens"])
     st.session_state["interview"].record_time("feedback_processed")
     update_interview()
-    set_stage(FEEDBACK_SCREEN)
+    set_stage("FEEDBACK_SCREEN")
     st.rerun()
 
 
-if st.session_state["stage"] == FEEDBACK_SCREEN:
+if st.session_state["stage"] == "FEEDBACK_SCREEN":
     st.title("Feedback")
     layout1 = st.columns([3, 1])
     layout1[0].write("The \"Post Note\" tab shows personalized feedback for each of your write-ups based on a detailed IDEA-based rubric. The \"Interview\" tab shows your interview transcript. The \"Case Explanation\" tab allows you to download a document with additional details and explanations on the patient case.")
     layout1[0].write("You're almost done! Click \"Next\" to proceed to the final screen.")
     layout11 = layout1[1].columns([1, 2, 1])
-    layout11[1].button("**Next**", on_click=set_stage, args=[SURVEY], use_container_width=True, key=1)
+    layout11[1].button("**Next**", on_click=set_stage, args=["SURVEY"], use_container_width=True, key=1)
     
     # Let the display methods cook
     display_Interview(st.session_state["interview"].model_dump())
 
     st.divider()
     layout2 = st.columns([1, 2, 1])
-    layout2[1].button("**Next**", on_click=set_stage, args=[SURVEY], use_container_width=True, key=2)
+    layout2[1].button("**Next**", on_click=set_stage, args=["SURVEY"], use_container_width=True, key=2)
 
 
-if st.session_state["stage"] == SURVEY:
+if st.session_state["stage"] == "SURVEY":
     layout1 = st.columns([2, 3, 2])
     with layout1[1]:
         st.title("Survey")
@@ -460,15 +460,15 @@ if st.session_state["stage"] == SURVEY:
                 st.session_state["interview"].record_time("end")
                 st.session_state["interview"].finish()
                 update_interview()
-            set_stage(FINAL_SCREEN)
+            set_stage("FINAL_SCREEN")
             st.rerun()
 
 
-if st.session_state["stage"] == FINAL_SCREEN:
+if st.session_state["stage"] == "FINAL_SCREEN":
     layout1 = st.columns([2, 2, 2])
     with layout1[1]:
         st.title("Thank you! :heart:")
         st.write("Your responses have been saved automatically.")
         button_columns = st.columns(2)
-        button_columns[0].button("New Interview", on_click=set_stage, args=[SETTINGS])
-        button_columns[1].button("Back to Login", on_click=set_stage, args=[LOGIN_PAGE])
+        button_columns[0].button("New Interview", on_click=set_stage, args=["SETTINGS"])
+        button_columns[1].button("Back to Login", on_click=set_stage, args=["LOGIN_PAGE"])
