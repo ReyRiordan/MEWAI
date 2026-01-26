@@ -12,4 +12,3 @@ pytz
 google-genai
 emoji
 python-dotenv
-re
