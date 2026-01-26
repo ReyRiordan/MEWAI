@@ -58,6 +58,7 @@ def process_case(case: dict):
 
 base = str(BASE_PROMPT.replace("{patient}", PATIENT['case']['demographics']['name']))
 CONVO_PROMPT = base + process_case(PATIENT['case'])
+print(CONVO_PROMPT)
 
 
 # ASR
@@ -176,7 +177,7 @@ class InworldTTS:
         payload = {
             "text": response_text,
             "voiceId": options['voice'],
-            "modelId": "inworld-tts-1",
+            "modelId": "inworld-tts-1.5-mini",
             "audio_config": {
                 "audio_encoding": "LINEAR16",
                 "sample_rate_hertz": 48000,
@@ -270,7 +271,7 @@ chatbot = gr.Chatbot(type="messages")
 
 # https://fastrtc.org/advanced-configuration/
 algo_options = AlgoOptions(
-    audio_chunk_duration=0.6,
+    audio_chunk_duration=1.0,
     started_talking_threshold=0.3,
     speech_threshold=0.3,
 )
@@ -295,7 +296,7 @@ if __name__ == "__main__":
     os.environ["GRADIO_SSR_MODE"] = "false"
     mode = os.getenv("MODE", "UI")
     if mode == "UI":
-        stream.ui.launch(server_port=7860)
+        stream.ui.launch(server_port=7860, share=True)
     elif mode == "PHONE":
         stream.fastphone(host="0.0.0.0", port=7860)
     else:

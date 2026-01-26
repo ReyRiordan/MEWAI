@@ -21,9 +21,9 @@
     },
     "chief_complaint": "You came to the hospital because you were experiencing a heaviness in your chest. You are nervous about your symptoms because your father died suddenly of a heart attack when he was 50.",
     "free_information": [
-      "the heaviness came on gradually, seated at desk at home when symptoms appeared",
-      "it was pretty severe when it first started, gradually improved and is now gone",
-      "started around 2 hours ago, got better on the way here and stopped 20-30 minutes ago",
+      "The heaviness came on gradually, you were seated at desk at home when symptoms appeared",
+      "It was pretty severe when it first started, gradually improved and is now gone",
+      "It started around 2 hours ago, got better on the way here and stopped 20-30 minutes ago",
       "You were feeling slightly nauseated and sweaty prior to arriving, but you feel better now.",
       "You have been fully boosted for COVID, but do not always get a flu vaccine.",
       "You had a hernia in your groin that was repaired when you were 26.",
@@ -34,9 +34,9 @@
       "You do get pain in your left leg when you walk, a cramp in the calf. It goes away when you stop walking."
     ],
     "locked_information": [
-      "feels like a weight on the chest",
-      "location is center of chest",
-      "pattern of symptom was constant when it occurred",
+      "The heaviness feels like a weight on the chest",
+      "The location is center of your chest",
+      "The pattern of symptom was constant when it occurred",
       "You have never had chest pain or pressure like you are experiencing now, but have experienced a milder chest discomfort when walking (thought this was heart burn or you had a stomach problem). Discomfort would happen when walking up long hill near end of route, where you would take an antacid and feel better.",
       "You also felt an aching pain in your jaw and both shoulders when the pressure was at its worst",
       "you have not noticed anything that makes the heaviness worse",
