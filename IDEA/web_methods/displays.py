@@ -290,6 +290,34 @@ def display_evaluation_group(interview: dict, evaluation: dict, evaluations: dic
 
 
 def display_PostNote(feedback: dict, inputs: dict) -> None:
+    def convert_rubric_to_html(features, scoring):
+        """Convert rubric dictionary to HTML format with separate features and scoring sections"""
+        
+        html_parts = []
+        
+        # Features section
+        html_parts.append('<p><b>Features:</b></p>')
+        html_parts.append('<ol type="a" style="padding-left: 40px;">')
+        for key in sorted(features.keys()):
+            feature_text = features[key]
+            html_parts.append(f'<li style="margin-bottom: 5px;">{feature_text}</li>')
+        html_parts.append('</ol>')
+        
+        # Scoring section
+        html_parts.append('<p><b>Scoring:</b></p>')
+        html_parts.append('<ol style="padding-left: 40px;">')
+        
+        # Process scoring in descending order
+        score_keys = sorted(scoring.keys(), key=int, reverse=True)
+        
+        for score in score_keys:
+            description = scoring[score]
+            html_parts.append(f'<li style="margin-bottom: 5px;" value="{score}">{description}</li>')
+        
+        html_parts.append('</ol>')
+        
+        return ''.join(html_parts)
+    
     # print(feedback)
     inst = st.session_state["admin"]
     for category, d in feedback["post_note"].items():
@@ -301,30 +329,29 @@ def display_PostNote(feedback: dict, inputs: dict) -> None:
                 st.write(inputs[category])
             with layout1[1]:
                 st.subheader("**Feedback:**")
-                if category in ["HPI", "Past Histories", "Assessment"]:
+                if category == "Assessment":
                     st.write("Make sure to check each section!")
-                    parts = [part for part in d]
+                    parts = ["Differential Diagnosis", "Explanation of Lead Diagnosis", "Explanation of Alternative Diagnoses"]
                     tabs = st.tabs(parts)
                     for i, part in enumerate(parts):
                         dd = d[part]
                         with tabs[i]:
                             if inst: st.write(f"**Score: {dd['score']}/{dd['max']}**")
-                            st.write(dd["comment"])
+                            st.write("Comments are deprecated...")
                             with st.expander("Rubric"):
-                                st.write(RUBRIC[category][part]["desc"])
-                                st.html(RUBRIC[category][part]["html"])
+                                st.write(RUBRIC[part]["desc"])
+                                st.html(convert_rubric_to_html(RUBRIC[part]["features"], RUBRIC[part]["scoring"]))
                             if inst:
-                                with st.expander("Thought process"):
+                                with st.expander("Rationales"):
                                     if dd["thought"]: st.write(dd["thought"])
-                            st.divider()
                 else:
                     if inst: st.write(f"**Score: {d['score']}/{d['max']}**")
-                    st.write(d["comment"])
+                    st.write("Comments are deprecated...")
                     with st.expander("Rubric"):
                         st.write(RUBRIC[category]["desc"])
-                        st.html(RUBRIC[category]["html"])
+                        st.html(convert_rubric_to_html(RUBRIC[category]["features"], RUBRIC[category]["scoring"]))
                     if inst:
-                        with st.expander("Thought process"):
+                        with st.expander("Rationales"):
                             if d["thought"]: st.write(d["thought"])
 
 

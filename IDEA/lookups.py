@@ -41,6 +41,7 @@ from dotenv import load_dotenv
 
 
 # ------------- SECRETS -------------
+load_dotenv('.venv/.env')
 LOGIN_PASS = os.getenv("LOGIN_PASS")
 DB_URI = os.getenv("DB_URI")
 TARGET_COLLECTION = ""
@@ -91,7 +92,7 @@ CONVO_TEMP = 0.7
 SUM_MODEL = "gpt-4o"
 SUM_TEMP = 0.0
 
-FEEDBACK_MODEL = "claude-sonnet-4-20250514"
+FEEDBACK_MODEL = "anthropic/claude-haiku-4.5"
 FEEDBACK_TEMP = 0.0
 
 
@@ -105,7 +106,7 @@ PATHS = {"Patient Base": "./Prompts/Base_3-27.txt",
          "Grade Summary": "./Prompts/Grade_Sum_4-14.txt",
          "Grade Rationale": "./Prompts/Grade_Rat_6-26.txt",
          "Grade Diagnosis": "./Prompts/Grade_Diag_4-23.txt",
-         "Feedback": "./Prompts/Feedback_2-17.txt"}
+         "Feedback": "./Prompts/Evalflag_11-24-25.txt"}
 
 
 # ------------- ASSIGNMENTS --------------
